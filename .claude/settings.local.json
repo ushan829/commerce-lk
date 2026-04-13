@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(npx next:*)",
+      "Bash(Remove-Item -Recurse -Force \"C:\\\\Users\\\\ushan\\\\Videos\\\\comm\\\\.next\" -ErrorAction SilentlyContinue)",
+      "Bash(xargs grep:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run:*)",
+      "Bash(node scripts/generate-icons.mjs)",
+      "Bash(grep \"import/page\\\\|import\\\\\\\\\\\\\\\\page\")",
+      "Bash(npx tailwindcss:*)",
+      "Read(//tmp/**)",
+      "Bash(xargs sed:*)",
+      "Bash(sed:*)",
+      "Bash(sed -i 's/w-full px-6 py-4 rounded-\\\\[20px\\\\] bg-white border border-gray-200 focus:ring-4 focus:ring-primary\\\\/10 transition-all outline-none font-medium/input/g' app/register/page.tsx)",
+      "Bash(sed -i 's/w-full px-6 py-4 rounded-\\\\[20px\\\\] bg-white border border-gray-200 outline-none font-medium/input/g' app/register/page.tsx)",
+      "Bash(sed -i 's/w-full px-6 py-4 rounded-\\\\[20px\\\\] bg-white border border-gray-200 outline-none font-medium appearance-none/input appearance-none/g' app/register/page.tsx)"
+    ]
+  }
+}

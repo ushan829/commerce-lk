@@ -1,0 +1,17 @@
+{
+  "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
+  "/api/exam-dates/route": "app/api/exam-dates/route.js",
+  "/api/ads/display/route": "app/api/ads/display/route.js",
+  "/api/user/profile/route": "app/api/user/profile/route.js",
+  "/api/resources/[slug]/rate/route": "app/api/resources/[slug]/rate/route.js",
+  "/api/user/bookmarks/check/route": "app/api/user/bookmarks/check/route.js",
+  "/api/resources/[slug]/download/route": "app/api/resources/[slug]/download/route.js",
+  "/api/user/downloads/route": "app/api/user/downloads/route.js",
+  "/page": "app/page.js",
+  "/[subject]/page": "app/[subject]/page.js",
+  "/[subject]/[medium]/[category]/page": "app/[subject]/[medium]/[category]/page.js",
+  "/[subject]/[medium]/[category]/[resource]/page": "app/[subject]/[medium]/[category]/[resource]/page.js",
+  "/profile/page": "app/profile/page.js",
+  "/[subject]/[medium]/page": "app/[subject]/[medium]/page.js",
+  "/admin/ads/page": "app/admin/ads/page.js"
+}
