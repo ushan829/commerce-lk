@@ -68,7 +68,7 @@ export async function GET(req: NextRequest) {
     const results = await Resource.find(query, selectStage)
       .populate("subject", "name slug color icon")
       .populate("category", "name slug")
-      .sort(sortStage)
+      .sort(sortStage as any)
       .skip((page - 1) * limit)
       .limit(limit)
       .lean();

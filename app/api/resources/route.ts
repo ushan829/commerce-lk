@@ -112,7 +112,7 @@ async function notifySubscribers(resource: {
       { subscribedSubjects: { $size: 0 } },
       { subscribedSubjects: subjectSlug },
     ],
-  }).select("name email").lean() as { name: string; email: string }[];
+  }).select("name email").lean() as unknown as { name: string; email: string }[];
 
   // Send in batches of 20 to avoid overwhelming the SMTP server
   const BATCH = 20;
