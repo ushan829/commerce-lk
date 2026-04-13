@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
+import { getServerSession, Session } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import dbConnect from "@/lib/mongodb";
 import SiteSetting from "@/models/SiteSetting";
@@ -37,7 +37,7 @@ async function saveExamDates(dates: ExamDate[]) {
   );
 }
 
-function isAdmin(session: Awaited<ReturnType<typeof getServerSession>>) {
+function isAdmin(session: Session | null) {
   return (session?.user as { role?: string })?.role === "admin";
 }
 
