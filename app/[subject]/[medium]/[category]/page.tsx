@@ -1,3 +1,4 @@
+import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Metadata } from "next";
 import Header from "@/components/layout/Header";
