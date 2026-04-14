@@ -1,4 +1,5 @@
 "use client"
+import DOMPurify from 'isomorphic-dompurify'
 import { useEffect, useState } from "react"
 
 export default function AdBanner({ position }: { position: string }) {
@@ -26,13 +27,18 @@ export default function AdBanner({ position }: { position: string }) {
 
   if (!ad) return null
 
+  const sanitizedHtml = DOMPurify.sanitize(ad.htmlCode || ad.htmlContent || '', {
+    ALLOWED_TAGS: ['a', 'img', 'div', 'span', 'p', 'br', 'strong', 'em'],
+    ALLOWED_ATTR: ['href', 'src', 'alt', 'class', 'style', 'target', 'rel'],
+  })
+
   return (
     <div className="w-full my-4">
       <p className="text-xs text-gray-400 text-center mb-1">
         Advertisement
       </p>
       {ad.htmlCode || ad.htmlContent ? (
-        <div dangerouslySetInnerHTML={{ __html: ad.htmlCode || ad.htmlContent }} />
+        <div dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />
       ) : ad.imageUrl ? (
         <a 
           href={ad.linkUrl || "#"}

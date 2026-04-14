@@ -51,8 +51,9 @@ export async function GET() {
     await dbConnect();
     const dates = await getExamDates();
     return NextResponse.json({ examDates: dates });
-  } catch {
-    return NextResponse.json({ error: "Failed to fetch" }, { status: 500 });
+  } catch (error) {
+    console.error('[API Error]:', error);
+    return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 });
   }
 }
 
@@ -85,4 +86,5 @@ export async function POST(req: NextRequest) {
   } catch {
     return NextResponse.json({ error: "Failed to add" }, { status: 500 });
   }
+}
 }

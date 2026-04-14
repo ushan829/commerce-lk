@@ -41,43 +41,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true, message: "Rating deleted" });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to delete rating";
-    return NextResponse.json({ error: message }, { status: 500 });
-  }
-}
-
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user || (session.user as { role?: string }).role !== "admin") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const { id } = await params;
-    const { flagged, isHidden, adminNote } = await req.json();
-
-    await dbConnect();
-    const update: any = {};
-    if (flagged !== undefined) update.flagged = flagged;
-    if (isHidden !== undefined) update.isHidden = isHidden;
-    if (adminNote !== undefined) update.adminNote = adminNote;
-
-    const rating = await Rating.findByIdAndUpdate(
-      id,
-      { $set: update },
-      { new: true }
-    );
-
-    if (!rating) {
-      return NextResponse.json({ error: "Rating not found" }, { status: 404 });
-    }
-
-    return NextResponse.json({ success: true, rating });
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to update rating";
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error('[API Error]:', error);
+    return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 });
   }
 }

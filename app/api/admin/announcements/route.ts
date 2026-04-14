@@ -18,8 +18,8 @@ export async function GET() {
 
     return NextResponse.json({ announcements: JSON.parse(JSON.stringify(announcements)) });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to fetch announcements";
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error('[API Error]:', error);
+    return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 });
   }
 }
 
@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, announcement });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to create announcement";
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error('[API Error]:', error);
+    return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 });
   }
 }

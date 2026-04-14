@@ -18,22 +18,38 @@ export async function PUT(
     await dbConnect();
     const body = await req.json();
 
+    // Whitelist allowed fields
+    const { 
+      title, type, position, imageUrl, imageKey, linkUrl, altText, 
+      htmlContent, htmlCode, nativeTitle, nativeDescription, nativeImage, 
+      nativeImageKey, targetSubjects, targetCategories, targetMediums, 
+      isActive, startDate, endDate, order 
+    } = body;
+
+    const updates = { 
+      title, type, position, imageUrl, imageKey, linkUrl, altText, 
+      htmlContent, htmlCode, nativeTitle, nativeDescription, nativeImage, 
+      nativeImageKey, targetSubjects, targetCategories, targetMediums, 
+      isActive, startDate, endDate, order 
+    };
+
     // If the image was replaced, delete the old R2 object
     const existing = await Ad.findById(id);
     if (existing) {
-      if (existing.imageKey && body.imageKey && existing.imageKey !== body.imageKey) {
+      if (existing.imageKey && updates.imageKey && existing.imageKey !== updates.imageKey) {
         await deleteFromR2(existing.imageKey).catch(() => {});
       }
-      if (existing.nativeImageKey && body.nativeImageKey && existing.nativeImageKey !== body.nativeImageKey) {
+      if (existing.nativeImageKey && updates.nativeImageKey && existing.nativeImageKey !== updates.nativeImageKey) {
         await deleteFromR2(existing.nativeImageKey).catch(() => {});
       }
     }
 
-    const ad = await Ad.findByIdAndUpdate(id, body, { new: true });
+    const ad = await Ad.findByIdAndUpdate(id, { $set: updates }, { new: true });
     if (!ad) return NextResponse.json({ error: "Ad not found" }, { status: 404 });
     return NextResponse.json({ ad });
-  } catch {
-    return NextResponse.json({ error: "Failed to update ad" }, { status: 500 });
+  } catch (error) {
+    console.error('[API Error]:', error);
+    return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 });
   }
 }
 
@@ -58,7 +74,8 @@ export async function DELETE(
     }
 
     return NextResponse.json({ message: "Ad deleted" });
-  } catch {
-    return NextResponse.json({ error: "Failed to delete ad" }, { status: 500 });
+  } catch (error) {
+    console.error('[API Error]:', error);
+    return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 });
   }
 }

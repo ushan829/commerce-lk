@@ -79,8 +79,8 @@ export async function GET(req: NextRequest) {
       page,
       pages,
     });
-  } catch (err) {
-    console.error("Search error:", err);
-    return NextResponse.json({ error: "Search failed" }, { status: 500 });
+  } catch (error: unknown) {
+    console.error('[API Error]:', error);
+    return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 });
   }
 }

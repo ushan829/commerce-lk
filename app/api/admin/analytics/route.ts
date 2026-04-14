@@ -164,8 +164,8 @@ export async function GET() {
       usersByMonth:         mapMonthly(usersByMonthRaw),
       resourcesByMonth:     mapMonthly(resourcesByMonthRaw),
     });
-  } catch (err) {
-    console.error("Analytics error:", err);
-    return NextResponse.json({ error: "Failed to fetch analytics" }, { status: 500 });
+  } catch (error) {
+    console.error('[API Error]:', error);
+    return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 });
   }
 }

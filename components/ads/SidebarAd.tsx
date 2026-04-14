@@ -1,5 +1,6 @@
 "use client";
 
+import DOMPurify from 'isomorphic-dompurify';
 import { useEffect, useState } from "react";
 import Image from "next/image";
 
@@ -58,11 +59,15 @@ export default function SidebarAd({
         };
 
         if (ad.htmlContent) {
+          const sanitizedHtml = DOMPurify.sanitize(ad.htmlContent, {
+            ALLOWED_TAGS: ['a', 'img', 'div', 'span', 'p', 'br', 'strong', 'em'],
+            ALLOWED_ATTR: ['href', 'src', 'alt', 'class', 'style', 'target', 'rel'],
+          })
           return (
             <div
               key={ad._id}
               className="card overflow-hidden"
-              dangerouslySetInnerHTML={{ __html: ad.htmlContent }}
+              dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
             />
           );
         }

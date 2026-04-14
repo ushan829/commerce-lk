@@ -14,8 +14,9 @@ export async function GET(req: NextRequest) {
     const query = all === "true" ? {} : { isActive: true };
     const subjects = await Subject.find(query).sort({ order: 1 });
     return NextResponse.json({ subjects });
-  } catch {
-    return NextResponse.json({ error: "Failed to fetch subjects" }, { status: 500 });
+  } catch (error) {
+    console.error('[API Error]:', error);
+    return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 });
   }
 }
 
@@ -29,12 +30,22 @@ export async function POST(req: NextRequest) {
     await dbConnect();
     const body = await req.json();
 
-    const slug = body.slug || createSlug(body.name);
-    const subject = await Subject.create({ ...body, slug });
+    const { name, slug, description, icon, isActive, order, color } = body;
+
+    const finalSlug = slug || createSlug(name);
+    const subject = await Subject.create({ 
+      name, 
+      slug: finalSlug, 
+      description, 
+      icon, 
+      isActive, 
+      order, 
+      color 
+    });
 
     return NextResponse.json({ subject }, { status: 201 });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to create subject";
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error('[API Error]:', error);
+    return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 });
   }
 }

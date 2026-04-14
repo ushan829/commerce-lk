@@ -20,8 +20,9 @@ export async function GET() {
     const subscribedSubjects: string[] = user.subscribedSubjects || [];
 
     return NextResponse.json({ notifications, showProfile, subscribedSubjects });
-  } catch {
-    return NextResponse.json({ error: "Failed" }, { status: 500 });
+  } catch (error: unknown) {
+    console.error('[API Error]:', error);
+    return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 });
   }
 }
 
@@ -40,7 +41,8 @@ export async function PUT(req: NextRequest) {
       ...(Array.isArray(subscribedSubjects) && { subscribedSubjects }),
     });
     return NextResponse.json({ message: "Saved" });
-  } catch {
-    return NextResponse.json({ error: "Failed" }, { status: 500 });
+  } catch (error: unknown) {
+    console.error('[API Error]:', error);
+    return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 });
   }
 }

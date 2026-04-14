@@ -30,26 +30,8 @@ export async function PATCH(
 
     if (!report) return NextResponse.json({ error: "Report not found" }, { status: 404 });
     return NextResponse.json({ report: JSON.parse(JSON.stringify(report)) });
-  } catch {
-    return NextResponse.json({ error: "Failed to update report" }, { status: 500 });
-  }
-}
-
-export async function DELETE(
-  _req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session || (session.user as { role?: string }).role !== "admin") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const { id } = await params;
-    await dbConnect();
-    await Report.findByIdAndDelete(id);
-    return NextResponse.json({ message: "Deleted" });
-  } catch {
-    return NextResponse.json({ error: "Failed to delete" }, { status: 500 });
+  } catch (error) {
+    console.error('[API Error]:', error);
+    return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 });
   }
 }

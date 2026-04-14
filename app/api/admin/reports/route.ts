@@ -18,7 +18,8 @@ export async function GET(req: NextRequest) {
     const query = status === "all" ? {} : { status };
     const reports = await Report.find(query).sort({ createdAt: -1 }).lean();
     return NextResponse.json({ reports: JSON.parse(JSON.stringify(reports)) });
-  } catch {
-    return NextResponse.json({ error: "Failed to fetch reports" }, { status: 500 });
+  } catch (error) {
+    console.error('[API Error]:', error);
+    return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 });
   }
 }

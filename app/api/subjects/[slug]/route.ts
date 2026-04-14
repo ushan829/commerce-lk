@@ -15,8 +15,9 @@ export async function GET(
     if (!subject)
       return NextResponse.json({ error: "Subject not found" }, { status: 404 });
     return NextResponse.json({ subject });
-  } catch {
-    return NextResponse.json({ error: "Failed to fetch subject" }, { status: 500 });
+  } catch (error: unknown) {
+    console.error('[API Error]:', error);
+    return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 });
   }
 }
 
@@ -36,8 +37,9 @@ export async function PUT(
     if (!subject)
       return NextResponse.json({ error: "Subject not found" }, { status: 404 });
     return NextResponse.json({ subject });
-  } catch {
-    return NextResponse.json({ error: "Failed to update subject" }, { status: 500 });
+  } catch (error: unknown) {
+    console.error('[API Error]:', error);
+    return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 });
   }
 }
 
@@ -54,7 +56,8 @@ export async function DELETE(
     await dbConnect();
     await Subject.findOneAndDelete({ slug });
     return NextResponse.json({ message: "Subject deleted" });
-  } catch {
-    return NextResponse.json({ error: "Failed to delete subject" }, { status: 500 });
+  } catch (error: unknown) {
+    console.error('[API Error]:', error);
+    return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 });
   }
 }

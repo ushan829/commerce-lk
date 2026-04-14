@@ -42,8 +42,8 @@ export async function GET() {
 
     return NextResponse.json({ downloads: JSON.parse(JSON.stringify(result)) });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to fetch downloads";
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error('[API Error]:', error);
+    return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 });
   }
 }
 
@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ message: "Download recorded" });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to record download";
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error('[API Error]:', error);
+    return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 });
   }
 }

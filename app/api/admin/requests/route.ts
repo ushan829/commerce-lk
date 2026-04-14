@@ -21,7 +21,8 @@ export async function GET(req: NextRequest) {
       .lean();
 
     return NextResponse.json({ requests: JSON.parse(JSON.stringify(requests)) });
-  } catch {
-    return NextResponse.json({ error: "Failed to fetch requests" }, { status: 500 });
+  } catch (error) {
+    console.error('[API Error]:', error);
+    return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 });
   }
 }

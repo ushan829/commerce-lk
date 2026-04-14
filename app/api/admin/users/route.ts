@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ users: JSON.parse(JSON.stringify(users)) });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to fetch users";
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error('[API Error]:', error);
+    return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 });
   }
 }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sendContactEmail } from "@/lib/email";
+import { rateLimit } from "@/lib/rateLimit";
 
 const ALLOWED_TYPES = [
   "General enquiry",
@@ -11,6 +12,12 @@ const ALLOWED_TYPES = [
 
 export async function POST(req: NextRequest) {
   try {
+    const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
+    const { success } = rateLimit(`contact:${ip}`, 3, 60 * 1000);
+    if (!success) {
+      return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 });
+    }
+
     const { name, email, type, message } = await req.json();
 
     if (!name || !email || !type || !message) {
@@ -45,8 +52,8 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json({ success: true });
-  } catch (err) {
-    console.error("Contact form error:", err);
-    return NextResponse.json({ error: "Failed to send message. Please try again." }, { status: 500 });
+  } catch (error: unknown) {
+    console.error('[API Error]:', error);
+    return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 });
   }
 }

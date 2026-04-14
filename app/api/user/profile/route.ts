@@ -22,8 +22,8 @@ export async function GET() {
 
     return NextResponse.json({ user: JSON.parse(JSON.stringify(user)) });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to fetch profile";
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error('[API Error]:', error);
+    return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 });
   }
 }
 
@@ -61,8 +61,8 @@ export async function PUT(req: NextRequest) {
 
     return NextResponse.json({ user: JSON.parse(JSON.stringify(user)), message: "Profile updated" });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to update profile";
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error('[API Error]:', error);
+    return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 });
   }
 }
 
@@ -78,7 +78,7 @@ export async function DELETE() {
 
     return NextResponse.json({ message: "Account deleted" });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to delete account";
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error('[API Error]:', error);
+    return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 });
   }
 }

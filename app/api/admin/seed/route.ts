@@ -34,8 +34,8 @@ export async function POST() {
 
     return NextResponse.json({ message: "Database seeded successfully" });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Seed failed";
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error('[API Error]:', error);
+    return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 });
   }
 }
 

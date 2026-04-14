@@ -43,9 +43,7 @@ export async function POST(
 
     return NextResponse.json({ slug: dup.slug }, { status: 201 });
   } catch (error: unknown) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Failed to duplicate" },
-      { status: 500 }
-    );
+    console.error('[API Error]:', error);
+    return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 });
   }
 }

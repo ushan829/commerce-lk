@@ -82,7 +82,8 @@ export async function GET() {
       .slice(0, 10);
 
     return NextResponse.json({ activities: JSON.parse(JSON.stringify(all)) });
-  } catch {
-    return NextResponse.json({ error: "Failed to fetch activity" }, { status: 500 });
+  } catch (error: unknown) {
+    console.error('[API Error]:', error);
+    return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 });
   }
 }

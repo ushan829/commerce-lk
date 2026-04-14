@@ -86,7 +86,8 @@ export async function GET() {
     ];
 
     return NextResponse.json({ achievements: JSON.parse(JSON.stringify(achievements)) });
-  } catch {
-    return NextResponse.json({ error: "Failed to fetch achievements" }, { status: 500 });
+  } catch (error: unknown) {
+    console.error('[API Error]:', error);
+    return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 });
   }
 }

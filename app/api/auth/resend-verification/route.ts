@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import User from "@/models/User";
 import { sendVerificationEmail } from "@/lib/email";
+import { rateLimit } from "@/lib/rateLimit";
 
 function generateOTP(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -9,6 +10,12 @@ function generateOTP(): string {
 
 export async function POST(req: NextRequest) {
   try {
+    const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
+    const { success } = rateLimit(`resend:${ip}`, 3, 60 * 1000);
+    if (!success) {
+      return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 });
+    }
+
     await dbConnect();
     const { email } = await req.json();
 
@@ -19,7 +26,7 @@ export async function POST(req: NextRequest) {
     const user = await User.findOne({ email });
 
     if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      return NextResponse.json({ message: "If an account exists for this email, a verification link has been sent." }, { status: 200 });
     }
 
     if (user.isVerified) {
@@ -50,9 +57,9 @@ export async function POST(req: NextRequest) {
 
     await sendVerificationEmail(user.email, user.name, otp);
 
-    return NextResponse.json({ message: "Verification email sent" }, { status: 200 });
+    return NextResponse.json({ message: "If an account exists for this email, a verification link has been sent." }, { status: 200 });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to resend verification";
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error('[API Error]:', error);
+    return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 });
   }
 }

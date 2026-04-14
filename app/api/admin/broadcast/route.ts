@@ -5,6 +5,7 @@ import dbConnect from "@/lib/mongodb";
 import Broadcast from "@/models/Broadcast";
 import User from "@/models/User";
 import { sendBroadcastEmail } from "@/lib/email";
+import { rateLimit } from "@/lib/rateLimit";
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -23,8 +24,8 @@ export async function GET() {
 
     return NextResponse.json({ broadcasts: JSON.parse(JSON.stringify(broadcasts)) });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to fetch broadcasts";
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error('[API Error]:', error);
+    return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 });
   }
 }
 
@@ -33,6 +34,11 @@ export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session?.user || (session.user as { role?: string }).role !== "admin") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { success } = rateLimit(`broadcast:${(session.user as { id: string }).id}`, 2, 60 * 60 * 1000);
+    if (!success) {
+      return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 });
     }
 
     const { subject, message, recipientType } = await req.json();
@@ -115,7 +121,7 @@ export async function POST(req: NextRequest) {
     });
 
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Broadcast failed";
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error('[API Error]:', error);
+    return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 });
   }
 }

@@ -50,8 +50,9 @@ export async function GET(req: NextRequest) {
     });
 
     return NextResponse.json({ ads: filtered });
-  } catch {
-    return NextResponse.json({ error: "Failed to fetch ads" }, { status: 500 });
+  } catch (error) {
+    console.error('[API Error]:', error);
+    return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 });
   }
 }
 
@@ -63,10 +64,25 @@ export async function POST(req: NextRequest) {
     }
     await dbConnect();
     const body = await req.json();
-    const ad = await Ad.create(body);
+
+    // Whitelist allowed fields
+    const { 
+      title, type, position, imageUrl, imageKey, linkUrl, altText, 
+      htmlContent, htmlCode, nativeTitle, nativeDescription, nativeImage, 
+      nativeImageKey, targetSubjects, targetCategories, targetMediums, 
+      isActive, startDate, endDate, order 
+    } = body;
+
+    const ad = await Ad.create({
+      title, type, position, imageUrl, imageKey, linkUrl, altText, 
+      htmlContent, htmlCode, nativeTitle, nativeDescription, nativeImage, 
+      nativeImageKey, targetSubjects, targetCategories, targetMediums, 
+      isActive, startDate, endDate, order
+    });
+
     return NextResponse.json({ ad }, { status: 201 });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to create ad";
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error('[API Error]:', error);
+    return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 });
   }
 }

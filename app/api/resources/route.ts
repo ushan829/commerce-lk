@@ -68,10 +68,36 @@ export async function POST(req: NextRequest) {
     }
     await dbConnect();
     const body = await req.json();
-    const slug = body.slug || createSlug(body.title);
+
+    // Whitelist allowed fields
+    const { 
+      title, slug, description, subject, medium, category, 
+      fileUrl, fileKey, fileSize, fileType, thumbnailUrl, thumbnailKey,
+      tags, isActive, isFeatured, year, term, seoTitle, seoDescription 
+    } = body;
+
+    const finalSlug = slug || createSlug(title);
+    
     const resource = await Resource.create({
-      ...body,
-      slug,
+      title,
+      slug: finalSlug,
+      description,
+      subject,
+      medium,
+      category,
+      fileUrl,
+      fileKey,
+      fileSize,
+      fileType,
+      thumbnailUrl,
+      thumbnailKey,
+      tags,
+      isActive,
+      isFeatured,
+      year,
+      term,
+      seoTitle,
+      seoDescription,
       uploadedBy: (session.user as { id?: string }).id,
     });
 
@@ -84,8 +110,8 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ resource }, { status: 201 });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to create resource";
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error('[API Error]:', error);
+    return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 });
   }
 }
 

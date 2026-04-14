@@ -52,7 +52,8 @@ export async function GET() {
       },
       recentResources,
     });
-  } catch {
-    return NextResponse.json({ error: "Failed to fetch stats" }, { status: 500 });
+  } catch (error) {
+    console.error('[API Error]:', error);
+    return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 });
   }
 }

@@ -65,31 +65,8 @@ export async function PUT(
 
     await saveExamDates(dates);
     return NextResponse.json({ message: "Updated", examDate: dates[idx] });
-  } catch {
-    return NextResponse.json({ error: "Failed to update" }, { status: 500 });
-  }
-}
-
-// DELETE — remove an exam date
-export async function DELETE(
-  _req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!isAdmin(session)) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    const { id } = await params;
-
-    await dbConnect();
-    const dates = await getExamDates();
-    const filtered = dates.filter((d) => d.id !== id);
-    await saveExamDates(filtered);
-
-    return NextResponse.json({ message: "Deleted" });
-  } catch {
-    return NextResponse.json({ error: "Failed to delete" }, { status: 500 });
+  } catch (error) {
+    console.error('[API Error]:', error);
+    return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 });
   }
 }

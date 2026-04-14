@@ -1,5 +1,6 @@
 "use client";
 
+import DOMPurify from 'isomorphic-dompurify';
 import { useEffect, useState } from "react";
 import Image from "next/image";
 
@@ -67,10 +68,14 @@ export default function BannerAd({
   };
 
   if (ad.htmlContent) {
+    const sanitizedHtml = DOMPurify.sanitize(ad.htmlContent, {
+      ALLOWED_TAGS: ['a', 'img', 'div', 'span', 'p', 'br', 'strong', 'em'],
+      ALLOWED_ATTR: ['href', 'src', 'alt', 'class', 'style', 'target', 'rel'],
+    })
     return (
       <div
         className={`w-full overflow-hidden ${className}`}
-        dangerouslySetInnerHTML={{ __html: ad.htmlContent }}
+        dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
       />
     );
   }

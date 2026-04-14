@@ -42,48 +42,8 @@ export async function PATCH(
 
     return NextResponse.json({ success: true, rating });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to update comment";
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error('[API Error]:', error);
+    return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 });
   }
-}
-
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user || (session.user as { role?: string }).role !== "admin") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const { id } = await params;
-    await dbConnect();
-
-    const rating = await Rating.findById(id);
-    if (!rating) {
-      return NextResponse.json({ error: "Comment not found" }, { status: 404 });
-    }
-
-    const resourceId = rating.resourceId;
-    await Rating.findByIdAndDelete(id);
-
-    // Update resource stats
-    const agg = await Rating.aggregate([
-      { $match: { resourceId } },
-      { $group: { _id: null, avg: { $avg: "$rating" }, count: { $sum: 1 } } },
-    ]);
-
-    await Resource.findByIdAndUpdate(resourceId, {
-      $set: {
-        ratingAvg: agg[0]?.avg ? Math.round(agg[0].avg * 10) / 10 : 0,
-        ratingCount: agg[0]?.count || 0,
-      },
-    });
-
-    return NextResponse.json({ success: true });
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to delete comment";
-    return NextResponse.json({ error: message }, { status: 500 });
   }
-}
+
