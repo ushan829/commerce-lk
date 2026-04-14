@@ -4,6 +4,7 @@ import dbConnect from "@/lib/mongodb";
 import User from "@/models/User";
 import { sendPasswordResetEmail } from "@/lib/email";
 import { rateLimit } from "@/lib/rateLimit";
+import { validateInput, forgotPasswordSchema } from "@/lib/validations";
 
 export async function POST(req: NextRequest) {
   try {
@@ -14,11 +15,13 @@ export async function POST(req: NextRequest) {
     }
 
     await dbConnect();
-    const { email } = await req.json();
-
-    if (!email) {
-      return NextResponse.json({ error: "Email is required" }, { status: 400 });
+    const body = await req.json();
+    const validation = validateInput(forgotPasswordSchema, body);
+    if (!validation.success) {
+      return NextResponse.json({ error: validation.error }, { status: 400 });
     }
+
+    const { email } = validation.data!;
 
     const user = await User.findOne({ email });
 

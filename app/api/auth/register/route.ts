@@ -3,6 +3,7 @@ import dbConnect from "@/lib/mongodb";
 import User from "@/models/User";
 import { sendWelcomeEmail, sendVerificationEmail } from "@/lib/email";
 import { rateLimit } from "@/lib/rateLimit";
+import { validateInput, registerSchema } from "@/lib/validations";
 
 function generateOTP(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -17,24 +18,16 @@ export async function POST(req: NextRequest) {
     }
 
     await dbConnect();
+    const body = await req.json();
+    const validation = validateInput(registerSchema, body);
+    if (!validation.success) {
+      return NextResponse.json({ error: validation.error }, { status: 400 });
+    }
+
     const {
       name, email, password,
       phone, school, district, stream, medium, alYear, gender, dateOfBirth,
-    } = await req.json();
-
-    if (!name || !email || !password) {
-      return NextResponse.json(
-        { error: "Name, email and password are required" },
-        { status: 400 }
-      );
-    }
-
-    if (password.length < 6) {
-      return NextResponse.json(
-        { error: "Password must be at least 6 characters" },
-        { status: 400 }
-      );
-    }
+    } = validation.data!;
 
     const existing = await User.findOne({ email });
     if (existing) {

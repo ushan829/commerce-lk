@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import dbConnect from "@/lib/mongodb";
 import Rating from "@/models/Rating";
 import Resource from "@/models/Resource";
+import { validateInput, ratingSchema } from "@/lib/validations";
 
 // GET — fetch average rating + count + current user's rating
 export async function GET(
@@ -89,11 +90,13 @@ export async function POST(
     }
 
     const { slug } = await params;
-    const { rating, comment } = await req.json();
-
-    if (!rating || rating < 1 || rating > 5) {
-      return NextResponse.json({ error: "Rating must be between 1 and 5" }, { status: 400 });
+    const body = await req.json();
+    const validation = validateInput(ratingSchema, body);
+    if (!validation.success) {
+      return NextResponse.json({ error: validation.error }, { status: 400 });
     }
+
+    const { rating, comment } = validation.data!;
 
     await dbConnect();
     const resource = await Resource.findOne({ slug, isActive: true }).select("_id").lean() as { _id: { toString(): string } } | null;

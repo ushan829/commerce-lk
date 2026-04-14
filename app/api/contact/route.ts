@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sendContactEmail } from "@/lib/email";
 import { rateLimit } from "@/lib/rateLimit";
+import { validateInput, contactSchema } from "@/lib/validations";
 
 const ALLOWED_TYPES = [
   "General enquiry",
@@ -18,30 +19,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 });
     }
 
-    const { name, email, type, message } = await req.json();
-
-    if (!name || !email || !type || !message) {
-      return NextResponse.json({ error: "All fields are required." }, { status: 400 });
+    const body = await req.json();
+    const validation = validateInput(contactSchema, body);
+    if (!validation.success) {
+      return NextResponse.json({ error: validation.error }, { status: 400 });
     }
 
-    if (name.trim().length < 2 || name.trim().length > 100) {
-      return NextResponse.json({ error: "Name must be between 2 and 100 characters." }, { status: 400 });
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return NextResponse.json({ error: "Please enter a valid email address." }, { status: 400 });
-    }
+    const { name, email, type, message } = validation.data!;
 
     if (!ALLOWED_TYPES.includes(type)) {
       return NextResponse.json({ error: "Invalid enquiry type." }, { status: 400 });
-    }
-
-    if (message.trim().length < 10 || message.trim().length > 2000) {
-      return NextResponse.json(
-        { error: "Message must be between 10 and 2000 characters." },
-        { status: 400 }
-      );
     }
 
     await sendContactEmail({

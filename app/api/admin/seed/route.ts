@@ -7,7 +7,12 @@ import { DEFAULT_SUBJECTS, DEFAULT_CATEGORIES } from "@/lib/utils";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
+const SEED_DISABLED = process.env.DISABLE_SEED === 'true'
+
 export async function POST() {
+  if (SEED_DISABLED) {
+    return NextResponse.json({ error: 'Seed route is disabled in production.' }, { status: 403 });
+  }
   try {
     const session = await getServerSession(authOptions);
     if (!session || (session.user as { role?: string }).role !== "admin") {
@@ -41,6 +46,9 @@ export async function POST() {
 
 // Initial setup - creates first admin (only works if no admin exists)
 export async function GET(req: NextRequest) {
+  if (SEED_DISABLED) {
+    return NextResponse.json({ error: 'Seed route is disabled in production.' }, { status: 403 });
+  }
   try {
     const { searchParams } = new URL(req.url);
     const setupKey = searchParams.get("key");

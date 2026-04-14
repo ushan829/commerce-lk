@@ -60,6 +60,16 @@ export default function LoginForm() {
     if (res?.error) {
       if (res.error === "EMAIL_NOT_VERIFIED" || res.error.includes("EMAIL_NOT_VERIFIED")) {
         setError("EMAIL_NOT_VERIFIED");
+      } else if (res.error.startsWith("ACCOUNT_LOCKED")) {
+        const minutes = res.error.split(":")[1] || "15";
+        setError(`ACCOUNT_LOCKED:${minutes}`);
+      } else if (res.error.startsWith("INVALID_CREDENTIALS")) {
+        const count = parseInt(res.error.split(":")[1] || "0");
+        if (count >= 3) {
+          setError(`INVALID_CREDENTIALS:${count}`);
+        } else {
+          setError("Incorrect email or password. Please try again.");
+        }
       } else {
         setError("Incorrect email or password. Please try again.");
       }
@@ -129,6 +139,25 @@ export default function LoginForm() {
                   {resendLoading ? "Sending..." : "Resend verification email"}
                 </button>
               )}
+            </div>
+          ) : error.startsWith("ACCOUNT_LOCKED") ? (
+            <div className="mb-8 bg-red-50 border border-red-200 rounded-2xl p-6">
+              <p className="text-red-800 font-bold text-sm">
+                Account temporarily locked due to too many failed attempts.
+              </p>
+              <p className="text-red-600 text-sm mt-1 font-medium">
+                Please try again in {error.split(":")[1] || "15"} minutes or reset your password.
+              </p>
+              <Link href="/forgot-password" size="sm" className="mt-4 inline-block text-sm text-blue-600 hover:text-blue-700 font-bold underline">
+                Reset your password
+              </Link>
+            </div>
+          ) : error.startsWith("INVALID_CREDENTIALS") ? (
+            <div className="mb-8 p-4 bg-red-50 border border-red-100 text-red-600 text-sm font-bold rounded-2xl">
+              <p>Incorrect email or password. Please try again.</p>
+              <p className="text-xs mt-1 text-red-500 font-medium italic">
+                Warning: {error.split(":")[1]} failed attempts. Account will be locked after 5 failed attempts.
+              </p>
             </div>
           ) : error && (
             <div className="mb-8 p-4 bg-red-50 border border-red-100 text-red-600 text-sm font-bold rounded-2xl">

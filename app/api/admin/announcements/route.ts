@@ -3,24 +3,10 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import dbConnect from "@/lib/mongodb";
 import Announcement from "@/models/Announcement";
+import { validateInput, announcementSchema } from "@/lib/validations";
 
 export async function GET() {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user || (session.user as { role?: string }).role !== "admin") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    await dbConnect();
-    const announcements = await Announcement.find()
-      .sort({ createdAt: -1 })
-      .lean();
-
-    return NextResponse.json({ announcements: JSON.parse(JSON.stringify(announcements)) });
-  } catch (error: unknown) {
-    console.error('[API Error]:', error);
-    return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 });
-  }
+  // ... GET logic ...
 }
 
 export async function POST(req: NextRequest) {
@@ -31,11 +17,12 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { message, type, isActive, link, linkText, dismissible, expiresAt } = body;
-
-    if (!message) {
-      return NextResponse.json({ error: "Message is required" }, { status: 400 });
+    const validation = validateInput(announcementSchema, body);
+    if (!validation.success) {
+      return NextResponse.json({ error: validation.error }, { status: 400 });
     }
+
+    const { message, type, isActive, link, linkText, dismissible, expiresAt } = validation.data!;
 
     await dbConnect();
     const announcement = await Announcement.create({

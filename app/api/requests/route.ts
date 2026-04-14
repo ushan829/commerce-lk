@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import dbConnect from "@/lib/mongodb";
 import ResourceRequest from "@/models/ResourceRequest";
+import { validateInput, resourceRequestSchema } from "@/lib/validations";
 
 // GET — user's own requests
 export async function GET() {
@@ -33,18 +34,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Sign in to submit a request" }, { status: 401 });
     }
 
-    const { subject, medium, category, title, year, notes } = await req.json();
-
-    if (!subject || !medium || !category || !title) {
-      return NextResponse.json(
-        { error: "Subject, medium, category and title are required" },
-        { status: 400 }
-      );
+    const body = await req.json();
+    const validation = validateInput(resourceRequestSchema, body);
+    if (!validation.success) {
+      return NextResponse.json({ error: validation.error }, { status: 400 });
     }
 
-    if (title.length > 200) {
-      return NextResponse.json({ error: "Title must be under 200 characters" }, { status: 400 });
-    }
+    const { subject, medium, category, title, year, notes } = validation.data!;
 
     await dbConnect();
 
