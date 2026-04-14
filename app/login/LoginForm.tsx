@@ -148,7 +148,7 @@ export default function LoginForm() {
               <p className="text-red-600 text-sm mt-1 font-medium">
                 Please try again in {error.split(":")[1] || "15"} minutes or reset your password.
               </p>
-              <Link href="/forgot-password" size="sm" className="mt-4 inline-block text-sm text-blue-600 hover:text-blue-700 font-bold underline">
+              <Link href="/forgot-password" className="mt-4 inline-block text-sm text-blue-600 hover:text-blue-700 font-bold underline">
                 Reset your password
               </Link>
             </div>
