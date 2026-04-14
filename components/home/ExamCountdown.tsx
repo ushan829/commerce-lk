@@ -34,13 +34,13 @@ function Timer({ date }: { date: string }) {
         { l: "Minutes", v: t.minutes },
         { l: "Seconds", v: t.seconds },
       ].map(({ l, v }) => (
-        <div key={l} className="flex flex-col items-center gap-1">
-          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white/50 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/40 shadow-sm">
-            <span className="text-2xl sm:text-3xl font-bold text-blue-600 tabular-nums">
+        <div key={l} className="flex flex-col items-center">
+          <div className="bg-white rounded-xl px-3 py-2 min-w-[60px] text-center shadow-sm">
+            <span className="text-2xl font-bold text-blue-600 tabular-nums">
               {String(v).padStart(2, "0")}
             </span>
           </div>
-          <span className="text-[10px] sm:text-xs font-bold text-blue-600/60 uppercase tracking-widest">{l}</span>
+          <span className="text-xs text-blue-400 mt-0.5 font-bold uppercase tracking-wider">{l}</span>
         </div>
       ))}
     </div>

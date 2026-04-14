@@ -10,15 +10,44 @@ export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/";
+  const urlError = searchParams.get("error");
   const [form, setForm] = useState({ email: "", password: "" });
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendMessage, setResendMessage] = useState({ text: "", type: "" });
+  const [error, setError] = useState(urlError === "EMAIL_NOT_VERIFIED" ? "EMAIL_NOT_VERIFIED" : "");
+
+  const handleResendVerification = async () => {
+    if (!form.email) return;
+    setResendLoading(true);
+    setResendMessage({ text: "", type: "" });
+    try {
+      const res = await fetch("/api/auth/resend-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: form.email }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setResendMessage({ text: "Verification email sent! Check your inbox.", type: "success" });
+      } else if (res.status === 429) {
+        setResendMessage({ text: "Please wait a moment before trying again.", type: "error" });
+      } else {
+        setResendMessage({ text: data.message || data.error || "Failed to resend email.", type: "error" });
+      }
+    } catch {
+      setResendMessage({ text: "Something went wrong. Please try again.", type: "error" });
+    } finally {
+      setResendLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
+    setResendMessage({ text: "", type: "" });
 
     const res = await signIn("credentials", {
       email: form.email,
@@ -29,7 +58,11 @@ export default function LoginForm() {
     setLoading(false);
 
     if (res?.error) {
-      setError("Invalid email or password. Please try again.");
+      if (res.error === "EMAIL_NOT_VERIFIED" || res.error.includes("EMAIL_NOT_VERIFIED")) {
+        setError("EMAIL_NOT_VERIFIED");
+      } else {
+        setError("Incorrect email or password. Please try again.");
+      }
     } else {
       router.push(callbackUrl);
       router.refresh();
@@ -78,7 +111,26 @@ export default function LoginForm() {
              <p className="text-lg text-gray-500">Sign in to continue your journey.</p>
           </div>
 
-          {error && (
+          {error === "EMAIL_NOT_VERIFIED" ? (
+            <div className="mb-8 bg-yellow-50 border border-yellow-200 rounded-2xl p-6">
+              <p className="text-yellow-800 font-bold text-sm">Please verify your email address to continue.</p>
+              <p className="text-yellow-700 text-sm mt-1 font-medium">Check your inbox for the verification link.</p>
+              
+              {resendMessage.text ? (
+                <p className={`mt-4 text-sm font-bold ${resendMessage.type === "success" ? "text-green-600" : "text-red-600"}`}>
+                  {resendMessage.text}
+                </p>
+              ) : (
+                <button
+                  onClick={handleResendVerification}
+                  disabled={resendLoading}
+                  className="mt-4 text-sm text-blue-600 hover:text-blue-700 font-bold underline disabled:opacity-50"
+                >
+                  {resendLoading ? "Sending..." : "Resend verification email"}
+                </button>
+              )}
+            </div>
+          ) : error && (
             <div className="mb-8 p-4 bg-red-50 border border-red-100 text-red-600 text-sm font-bold rounded-2xl">
               {error}
             </div>

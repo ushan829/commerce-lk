@@ -3,8 +3,7 @@ import Link from "next/link";
 import { Metadata } from "next";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
-import DownloadButton from "@/components/resource/DownloadButton";
-import BookmarkButton from "@/components/resource/BookmarkButton";
+import ResourceActions from "@/components/resource/ResourceActions";
 import TagPills from "@/components/resource/TagPills";
 import RelatedResources from "@/components/resource/RelatedResources";
 import ShareButtons from "@/components/resource/ShareButtons";
@@ -233,10 +232,7 @@ export default async function ResourcePage({ params }: Props) {
                     <span className="inline-block w-2 h-2 rounded-full bg-blue-600"></span>
                     Download Resource
                   </h3>
-                  <div className="space-y-4">
-                    <DownloadButton slug={resourceSlug} title={resource.title} pageUrl={pageUrl} />
-                    <BookmarkButton resourceId={resource._id} />
-                  </div>
+                  <ResourceActions resource={resource} pageUrl={pageUrl} />
                 </div>
 
                 <AdBanner position="resource-sidebar" />

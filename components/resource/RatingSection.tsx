@@ -1,20 +1,23 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { StarIcon as StarOutline } from "@heroicons/react/24/outline";
+import { StarIcon as StarOutline, TrashIcon } from "@heroicons/react/24/outline";
 import { StarIcon as StarSolid } from "@heroicons/react/24/solid";
+import toast from "react-hot-toast";
 
 interface Props {
   slug: string;
 }
 
 interface Review {
+  _id: string;
   rating: number;
   comment: string;
   createdAt: string;
   userId: string;
+  userName: string;
 }
 
 interface RatingData {
@@ -82,15 +85,12 @@ function BarRow({ star, count, total }: { star: number; count: number; total: nu
   );
 }
 
-function formatRelative(dateStr: string) {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const days = Math.floor(diff / 86400000);
-  if (days === 0) return "Today";
-  if (days === 1) return "Yesterday";
-  if (days < 30) return `${days}d ago`;
-  const months = Math.floor(days / 30);
-  if (months < 12) return `${months}mo ago`;
-  return `${Math.floor(months / 12)}y ago`;
+function formatDate(dateStr: string) {
+  return new Date(dateStr).toLocaleDateString("en-LK", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
 }
 
 export default function RatingSection({ slug }: Props) {
@@ -106,19 +106,47 @@ export default function RatingSection({ slug }: Props) {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    fetch(`/api/resources/${slug}/rate`)
-      .then((r) => r.json())
-      .then((d) => {
-        setData(d);
-        if (d.userRating) {
-          setSelected(d.userRating.rating);
-          setComment(d.userRating.comment || "");
-          setSaved(true);
-        }
-      })
-      .finally(() => setLoading(false));
+  const isAdmin = (session?.user as { role?: string })?.role === "admin";
+
+  const fetchRatings = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/resources/${slug}/rate`);
+      const d = await res.json();
+      setData(d);
+      if (d.userRating) {
+        setSelected(d.userRating.rating);
+        setComment(d.userRating.comment || "");
+        setSaved(true);
+      }
+    } catch (err) {
+      console.error("Failed to fetch ratings", err);
+    } finally {
+      setLoading(false);
+    }
   }, [slug]);
+
+  useEffect(() => {
+    fetchRatings();
+  }, [fetchRatings]);
+
+  async function handleDeleteReview(reviewId: string) {
+    if (!confirm("Are you sure you want to delete this review?")) return;
+
+    try {
+      const res = await fetch(`/api/admin/ratings/${reviewId}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        toast.success("Review deleted");
+        fetchRatings();
+      } else {
+        const d = await res.json();
+        toast.error(d.error || "Failed to delete review");
+      }
+    } catch {
+      toast.error("An error occurred");
+    }
+  }
 
   async function handleSubmit() {
     if (!selected) return;
@@ -132,24 +160,9 @@ export default function RatingSection({ slug }: Props) {
       });
       const d = await res.json();
       if (!res.ok) throw new Error(d.error);
-      setData((prev) => {
-        if (!prev) return prev;
-        // Update or insert this user's review in the list
-        const userId = (session?.user as { id?: string })?.id || "";
-        const updatedReviews = comment.trim()
-          ? [
-              { rating: selected, comment: comment.trim(), createdAt: new Date().toISOString(), userId },
-              ...prev.reviews.filter((r) => r.userId !== userId),
-            ].slice(0, 10)
-          : prev.reviews.filter((r) => r.userId !== userId);
-        return {
-          ...prev,
-          avg: d.avg,
-          count: d.count,
-          userRating: { rating: selected, comment: comment.trim() },
-          reviews: updatedReviews,
-        };
-      });
+      
+      // Refresh all data from server to keep things in sync
+      await fetchRatings();
       setSaved(true);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to save");
@@ -214,7 +227,7 @@ export default function RatingSection({ slug }: Props) {
                 </button>
               </div>
               {data?.userRating?.comment && (
-                <p className="text-sm text-gray-600 bg-yellow-50 border border-yellow-100 rounded-lg px-3 py-2">
+                <p className="text-sm text-gray-600 bg-yellow-50 border border-yellow-100 rounded-lg px-3 py-2 italic mt-2">
                   &ldquo;{data.userRating.comment}&rdquo;
                 </p>
               )}
@@ -236,22 +249,29 @@ export default function RatingSection({ slug }: Props) {
                   </span>
                 )}
               </div>
-              <textarea
-                className="input text-sm resize-none"
-                rows={2}
-                placeholder="Add a comment (optional, max 500 characters)"
-                maxLength={500}
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-              />
-              {error && <p className="text-xs text-red-500">{error}</p>}
-              <button
-                onClick={handleSubmit}
-                disabled={!selected || saving}
-                className="btn-primary py-2 px-5 text-sm disabled:opacity-50"
-              >
-                {saving ? "Saving..." : saved ? "Update Rating" : "Submit Rating"}
-              </button>
+              
+              <div className="mt-4 flex flex-col gap-3">
+                <textarea
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  placeholder="Add a comment (optional, max 500 characters)"
+                  maxLength={500}
+                  rows={3}
+                  className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none transition-colors"
+                />
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-gray-400">{comment.length}/500</p>
+                  <button
+                    onClick={handleSubmit}
+                    disabled={selected === 0 || saving}
+                    className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white text-sm font-medium rounded-xl transition-colors"
+                  >
+                    {saving ? "Submitting..." : saved ? "Update Rating" : "Submit Rating"}
+                  </button>
+                </div>
+              </div>
+              
+              {error && <p className="text-xs text-red-500 mt-2">{error}</p>}
             </>
           )}
         </div>
@@ -271,34 +291,58 @@ export default function RatingSection({ slug }: Props) {
 
       {/* Reviews list */}
       {data && data.reviews.length > 0 && (
-        <div className="space-y-3">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
-            Comments ({data.reviews.length})
+        <div className="space-y-4 mt-8 pt-6 border-t border-gray-100">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-4">
+            Recent Reviews ({data.reviews.length})
           </p>
-          {data.reviews.map((review, idx) => (
-            <div
-              key={idx}
-              className={`flex gap-3 p-3 rounded-xl border ${
-                review.userId === currentUserId
-                  ? "bg-yellow-50 border-yellow-100"
-                  : "bg-gray-50 border-gray-100"
-              }`}
-            >
-              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0 text-xs font-bold text-blue-600">
-                {review.userId === currentUserId ? "You" : "★"}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <Stars value={review.rating} size="sm" />
-                  <span className="text-xs text-gray-400">{formatRelative(review.createdAt)}</span>
-                  {review.userId === currentUserId && (
-                    <span className="text-xs bg-yellow-200 text-yellow-800 px-1.5 py-0.5 rounded font-medium">You</span>
-                  )}
+          <div className="space-y-6">
+            {data.reviews.map((review, idx) => (
+              <div key={idx} className="border-b border-gray-50 pb-6 last:border-0">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                      <span className="text-blue-600 text-xs font-bold">
+                        {review.userName?.charAt(0).toUpperCase() || "?"}
+                      </span>
+                    </div>
+                    <span className="text-sm font-medium text-gray-900">
+                      {review.userName}
+                      {review.userId === currentUserId && (
+                        <span className="ml-2 text-[10px] bg-yellow-100 text-yellow-800 px-1.5 py-0.5 rounded-full font-bold uppercase">You</span>
+                      )}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-gray-400">{formatDate(review.createdAt)}</span>
+                    {isAdmin && (
+                      <button
+                        onClick={() => handleDeleteReview(review._id)}
+                        className="text-gray-400 hover:text-red-600 transition-colors p-1"
+                        title="Delete Review"
+                      >
+                        <TrashIcon className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
                 </div>
-                <p className="text-sm text-gray-700 break-words">{review.comment}</p>
+                
+                <div className="flex gap-0.5 mb-2">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <StarSolid
+                      key={star}
+                      className={`w-4 h-4 ${star <= review.rating ? "text-yellow-400" : "text-gray-200"}`}
+                    />
+                  ))}
+                </div>
+                
+                {review.comment && (
+                  <p className="text-sm text-gray-600 leading-relaxed">
+                    {review.comment}
+                  </p>
+                )}
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       )}
     </div>

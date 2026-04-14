@@ -5,6 +5,8 @@ export interface IRating extends Document {
   resourceId: mongoose.Types.ObjectId;
   rating: number;
   comment?: string;
+  flagged: boolean;
+  adminNote?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -15,6 +17,8 @@ const RatingSchema = new Schema<IRating>(
     resourceId: { type: Schema.Types.ObjectId, ref: "Resource", required: true },
     rating: { type: Number, required: true, min: 1, max: 5 },
     comment: { type: String, maxlength: 500, trim: true },
+    flagged: { type: Boolean, default: false },
+    adminNote: { type: String, default: "" },
   },
   { timestamps: true }
 );
@@ -22,6 +26,7 @@ const RatingSchema = new Schema<IRating>(
 // One rating per user per resource
 RatingSchema.index({ userId: 1, resourceId: 1 }, { unique: true });
 RatingSchema.index({ resourceId: 1 });
+RatingSchema.index({ flagged: 1 });
 
 export default mongoose.models.Rating ||
   mongoose.model<IRating>("Rating", RatingSchema);

@@ -38,6 +38,7 @@ export async function GET(
         { $group: { _id: "$rating", count: { $sum: 1 } } },
       ]),
       Rating.find({ resourceId, comment: { $exists: true, $ne: "" } })
+        .populate("userId", "name")
         .sort({ createdAt: -1 })
         .limit(10)
         .lean(),
@@ -57,8 +58,8 @@ export async function GET(
         rating: r.rating,
         comment: r.comment,
         createdAt: r.createdAt,
-        // anonymise: just show first letter of userId as avatar seed, no PII
-        userId: r.userId,
+        userId: r.userId?._id?.toString() || r.userId?.toString(),
+        userName: r.userId?.name || "Anonymous",
       })),
     };
 
