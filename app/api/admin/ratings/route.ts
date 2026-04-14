@@ -25,6 +25,8 @@ export async function GET(req: NextRequest) {
 
     if (filter === "flagged") {
       query.flagged = true;
+    } else if (filter === "hidden") {
+      query.isHidden = true;
     } else if (filter === "recent") {
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -58,6 +60,11 @@ export async function GET(req: NextRequest) {
     const totalPages = Math.ceil(totalCount / limit);
     const skip = (page - 1) * limit;
 
+    const [flaggedCount, hiddenCount] = await Promise.all([
+      Rating.countDocuments({ flagged: true }),
+      Rating.countDocuments({ isHidden: true }),
+    ]);
+
     const ratings = await Rating.find(query)
       .populate("userId", "name email")
       .populate({
@@ -78,6 +85,8 @@ export async function GET(req: NextRequest) {
       totalCount,
       totalPages,
       currentPage: page,
+      flaggedCount,
+      hiddenCount,
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Failed to fetch ratings";

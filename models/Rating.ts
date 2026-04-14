@@ -6,7 +6,9 @@ export interface IRating extends Document {
   rating: number;
   comment?: string;
   flagged: boolean;
+  flagReason?: string;
   adminNote?: string;
+  isHidden: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -18,7 +20,9 @@ const RatingSchema = new Schema<IRating>(
     rating: { type: Number, required: true, min: 1, max: 5 },
     comment: { type: String, maxlength: 500, trim: true },
     flagged: { type: Boolean, default: false },
+    flagReason: { type: String, default: "" },
     adminNote: { type: String, default: "" },
+    isHidden: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

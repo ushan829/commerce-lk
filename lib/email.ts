@@ -388,3 +388,22 @@ export async function sendPasswordResetEmail(to: string, name: string, resetToke
     html: wrapEmail("Reset Your Password", body),
   });
 }
+
+// ── Email Broadcast ─────────────────────────────────────────────────────────
+export async function sendBroadcastEmail(opts: {
+  to: string;
+  subject: string;
+  message: string;
+}) {
+  const { to, subject, message } = opts;
+  const body = `
+    <div style="color:#374151;font-size:15px;line-height:1.7;white-space:pre-wrap;">${message.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</div>
+  `;
+
+  return transporter.sendMail({
+    from: `"${SITE_NAME}" <${FROM}>`,
+    to,
+    subject,
+    html: wrapEmail(subject, body),
+  });
+}

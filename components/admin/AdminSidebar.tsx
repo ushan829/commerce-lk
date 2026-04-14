@@ -11,6 +11,7 @@ import {
   StarIcon,
   DocumentTextIcon,
   MegaphoneIcon,
+  EnvelopeIcon,
   UsersIcon,
   ArrowLeftOnRectangleIcon,
   Cog6ToothIcon,
@@ -35,6 +36,8 @@ const navItems = [
   { href: "/admin/analytics", label: "Analytics", icon: ChartBarIcon },
   { href: "/admin/exam-dates", label: "Exam Countdown", icon: ClockIcon },
   { href: "/admin/settings", label: "Settings", icon: Cog6ToothIcon },
+  { href: "/admin/announcements", label: "Announcements", icon: MegaphoneIcon },
+  { href: "/admin/broadcast", label: "Broadcast", icon: EnvelopeIcon },
 ];
 
 export default function AdminSidebar() {

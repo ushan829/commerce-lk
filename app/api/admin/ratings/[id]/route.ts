@@ -57,12 +57,17 @@ export async function PATCH(
     }
 
     const { id } = await params;
-    const { flagged, adminNote } = await req.json();
+    const { flagged, isHidden, adminNote } = await req.json();
 
     await dbConnect();
+    const update: any = {};
+    if (flagged !== undefined) update.flagged = flagged;
+    if (isHidden !== undefined) update.isHidden = isHidden;
+    if (adminNote !== undefined) update.adminNote = adminNote;
+
     const rating = await Rating.findByIdAndUpdate(
       id,
-      { $set: { flagged, adminNote } },
+      { $set: update },
       { new: true }
     );
 

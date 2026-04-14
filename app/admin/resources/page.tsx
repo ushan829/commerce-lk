@@ -32,6 +32,10 @@ export default function ResourcesAdmin() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
+  
+  // Bulk selection state
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [isBulkLoading, setIsBulkLoading] = useState(false);
 
   const fetchResources = (p = 1) => {
     setLoading(true);
@@ -73,6 +77,37 @@ export default function ResourcesAdmin() {
     }
   };
 
+  const handleBulkAction = async (action: 'delete' | 'publish' | 'unpublish') => {
+    if (selectedIds.length === 0) return;
+    
+    if (action === 'delete') {
+      const confirmed = confirm(`Are you sure you want to DELETE ${selectedIds.length} resource(s)? This cannot be undone.`);
+      if (!confirmed) return;
+    }
+
+    setIsBulkLoading(true);
+    try {
+      const res = await fetch('/api/admin/resources/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, resourceIds: selectedIds }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success(`Successfully ${action}ed ${selectedIds.length} resource(s)`);
+        setSelectedIds([]);
+        // Force reload to ensure UI is in sync
+        window.location.reload();
+      } else {
+        toast.error(data.error || 'Action failed. Please try again.');
+      }
+    } catch (error) {
+      toast.error('Something went wrong. Please try again.');
+    } finally {
+      setIsBulkLoading(false);
+    }
+  };
+
   const filtered = resources.filter(
     (r) =>
       !search ||
@@ -81,7 +116,7 @@ export default function ResourcesAdmin() {
   );
 
   return (
-    <div>
+    <div className="pb-20">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Resources</h1>
@@ -101,6 +136,44 @@ export default function ResourcesAdmin() {
         </div>
       </div>
 
+      {/* Bulk Action Bar */}
+      {selectedIds.length > 0 && (
+        <div className="flex items-center gap-3 p-4 bg-blue-50 border border-blue-200 rounded-xl mb-4 sticky top-0 z-30 shadow-sm animate-in fade-in slide-in-from-top-2 duration-200">
+          <span className="text-sm font-bold text-blue-700">
+            {selectedIds.length} resource{selectedIds.length > 1 ? 's' : ''} selected
+          </span>
+          <div className="flex gap-2 ml-auto">
+            <button
+              onClick={() => handleBulkAction('publish')}
+              disabled={isBulkLoading}
+              className="px-4 py-2 text-xs bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold transition-colors disabled:opacity-50"
+            >
+              Publish
+            </button>
+            <button
+              onClick={() => handleBulkAction('unpublish')}
+              disabled={isBulkLoading}
+              className="px-4 py-2 text-xs bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-bold transition-colors disabled:opacity-50"
+            >
+              Unpublish
+            </button>
+            <button
+              onClick={() => handleBulkAction('delete')}
+              disabled={isBulkLoading}
+              className="px-4 py-2 text-xs bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold transition-colors disabled:opacity-50"
+            >
+              Delete
+            </button>
+            <button
+              onClick={() => setSelectedIds([])}
+              className="px-4 py-2 text-xs border border-gray-300 hover:bg-white bg-white/50 text-gray-600 rounded-lg font-bold transition-colors"
+            >
+              Clear
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Search */}
       <div className="card mb-4 p-4">
         <div className="relative">
@@ -118,21 +191,49 @@ export default function ResourcesAdmin() {
         {loading ? (
           <div className="p-8 text-center text-gray-400">Loading...</div>
         ) : (
-          <table className="w-full min-w-[700px]">
+          <table className="w-full min-w-[800px]">
             <thead>
               <tr className="border-b border-gray-100 text-left">
+                <th className="px-5 py-3 w-12">
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.length === filtered.length && filtered.length > 0}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedIds(filtered.map(r => r._id));
+                      } else {
+                        setSelectedIds([]);
+                      }
+                    }}
+                    className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                  />
+                </th>
                 <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Title</th>
                 <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Subject</th>
                 <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Category</th>
                 <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Medium</th>
                 <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Downloads</th>
                 <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Status</th>
-                <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Actions</th>
+                <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {filtered.map((r) => (
-                <tr key={r._id} className="hover:bg-gray-50">
+                <tr key={r._id} className={`hover:bg-gray-50 transition-colors ${selectedIds.includes(r._id) ? 'bg-blue-50' : ''}`}>
+                  <td className="px-5 py-4">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.includes(r._id)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedIds(prev => [...prev, r._id]);
+                        } else {
+                          setSelectedIds(prev => prev.filter(id => id !== r._id));
+                        }
+                      }}
+                      className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                    />
+                  </td>
                   <td className="px-5 py-4">
                     <p className="font-medium text-gray-900 max-w-[280px] truncate">{r.title}</p>
                     <p className="text-xs text-gray-400 mt-0.5">{r.slug}</p>
@@ -149,29 +250,29 @@ export default function ResourcesAdmin() {
                     </span>
                   </td>
                   <td className="px-5 py-4">
-                    <span className={`badge ${r.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
-                      {r.isActive ? "Active" : "Inactive"}
+                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${r.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
+                      {r.isActive ? "Published" : "Draft"}
                     </span>
                   </td>
                   <td className="px-5 py-4">
-                    <div className="flex items-center space-x-1">
+                    <div className="flex items-center justify-end space-x-1">
                       <Link
                         href={`/admin/resources/${r.slug}/edit`}
-                        className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded"
+                        className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
                         title="Edit"
                       >
                         <PencilIcon className="w-4 h-4" />
                       </Link>
                       <button
                         onClick={() => handleDuplicate(r.slug)}
-                        className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded"
+                        className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
                         title="Duplicate as draft"
                       >
                         <DocumentDuplicateIcon className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleDelete(r.slug)}
-                        className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded"
+                        className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
                         title="Delete"
                       >
                         <TrashIcon className="w-4 h-4" />
@@ -182,7 +283,7 @@ export default function ResourcesAdmin() {
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-5 py-10 text-center text-gray-400">
+                  <td colSpan={8} className="px-5 py-10 text-center text-gray-400">
                     {search ? "No results found." : "No resources yet."}{" "}
                     <Link href="/admin/resources/new" className="text-blue-600">
                       Upload the first one

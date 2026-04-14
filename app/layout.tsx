@@ -5,6 +5,7 @@ import { PWAProvider } from "@/components/providers/PWAProvider";
 import { Toaster } from "react-hot-toast";
 import GoogleAnalytics from '@/components/analytics/GoogleAnalytics';
 import PageViewTracker from '@/components/analytics/PageViewTracker';
+import AnnouncementBanner from '@/components/layout/AnnouncementBanner';
 import { Suspense } from 'react';
 
 export const metadata: Metadata = {
@@ -72,6 +73,7 @@ export default function RootLayout({
       </head>
       <body suppressHydrationWarning className="bg-white antialiased">
         <SessionProvider>
+          <AnnouncementBanner />
           {children}
           <PWAProvider />
           <Toaster

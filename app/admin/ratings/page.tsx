@@ -9,7 +9,9 @@ import {
   MagnifyingGlassIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  ArrowTopRightOnSquareIcon
+  ArrowTopRightOnSquareIcon,
+  EyeIcon,
+  EyeSlashIcon
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarSolid, FlagIcon as FlagSolid } from "@heroicons/react/24/solid";
 import toast from "react-hot-toast";
@@ -19,6 +21,7 @@ interface Rating {
   rating: number;
   comment?: string;
   flagged: boolean;
+  isHidden: boolean;
   adminNote?: string;
   createdAt: string;
   userId: {
@@ -44,7 +47,7 @@ export default function AdminRatingsPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
-  const [stats, setStats] = useState({ total: 0, flagged: 0, recent: 0 });
+  const [stats, setStats] = useState({ total: 0, flagged: 0, hidden: 0, recent: 0 });
 
   const fetchRatings = useCallback(async () => {
     setLoading(true);
@@ -55,16 +58,12 @@ export default function AdminRatingsPage() {
         setRatings(data.ratings);
         setTotalPages(data.totalPages);
         setTotalCount(data.totalCount);
-        
-        // Basic stats for the header
-        if (page === 1 && search === "" && filter === "all") {
-          const flaggedCount = data.ratings.filter((r: Rating) => r.flagged).length;
-          setStats({
-            total: data.totalCount,
-            flagged: flaggedCount, // This is just from the first page, ideal would be a separate API or aggregate
-            recent: data.ratings.length // Placeholder
-          });
-        }
+        setStats({
+          total: data.totalCount,
+          flagged: data.flaggedCount || 0,
+          hidden: data.hiddenCount || 0,
+          recent: data.totalCount > 10 ? 10 : data.totalCount // approximate
+        });
       }
     } catch (error) {
       toast.error("Failed to fetch ratings");
@@ -78,17 +77,17 @@ export default function AdminRatingsPage() {
   }, [fetchRatings]);
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this review?")) return;
+    if (!confirm("Are you sure you want to delete this rating? This cannot be undone.")) return;
 
     try {
       const res = await fetch(`/api/admin/ratings/${id}`, {
         method: "DELETE",
       });
       if (res.ok) {
-        toast.success("Review deleted");
+        toast.success("Rating deleted");
         fetchRatings();
       } else {
-        toast.error("Failed to delete review");
+        toast.error("Failed to delete");
       }
     } catch (error) {
       toast.error("An error occurred");
@@ -104,9 +103,23 @@ export default function AdminRatingsPage() {
       });
       if (res.ok) {
         toast.success(!currentStatus ? "Review flagged" : "Review unflagged");
-        setRatings(prev => prev.map(r => r._id === id ? { ...r, flagged: !currentStatus } : r));
-      } else {
-        toast.error("Failed to update flag status");
+        fetchRatings();
+      }
+    } catch (error) {
+      toast.error("An error occurred");
+    }
+  };
+
+  const handleToggleHide = async (id: string, currentStatus: boolean) => {
+    try {
+      const res = await fetch(`/api/admin/ratings/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isHidden: !currentStatus }),
+      });
+      if (res.ok) {
+        toast.success(!currentStatus ? "Review hidden" : "Review visible");
+        fetchRatings();
       }
     } catch (error) {
       toast.error("An error occurred");
@@ -116,7 +129,7 @@ export default function AdminRatingsPage() {
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString("en-LK", {
       year: "numeric",
-      month: "long",
+      month: "short",
       day: "numeric",
     });
   };
@@ -124,23 +137,27 @@ export default function AdminRatingsPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Ratings & Reviews</h1>
-        <p className="text-gray-500 mt-1">Manage user ratings and comments</p>
+        <h1 className="text-3xl font-bold text-gray-900">Ratings & Moderation</h1>
+        <p className="text-gray-500 mt-1">Manage user ratings and moderate comments</p>
       </div>
 
       {/* Stats row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
           <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">Total Reviews</p>
           <p className="text-3xl font-bold text-gray-900 mt-2">{totalCount}</p>
         </div>
-        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm border-l-4 border-l-orange-500">
           <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">Flagged</p>
-          <p className="text-3xl font-bold text-orange-600 mt-2">{ratings.filter(r => r.flagged).length}+</p>
+          <p className="text-3xl font-bold text-orange-600 mt-2">{stats.flagged}</p>
         </div>
-        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm border-l-4 border-l-red-500">
+          <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">Hidden</p>
+          <p className="text-3xl font-bold text-red-600 mt-2">{stats.hidden}</p>
+        </div>
+        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm border-l-4 border-l-blue-500">
           <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">This Week</p>
-          <p className="text-3xl font-bold text-blue-600 mt-2">{totalCount > 10 ? "10+" : totalCount}</p>
+          <p className="text-3xl font-bold text-blue-600 mt-2">{stats.recent}+</p>
         </div>
       </div>
 
@@ -164,6 +181,7 @@ export default function AdminRatingsPage() {
           >
             <option value="all">All Reviews</option>
             <option value="flagged">Flagged Only</option>
+            <option value="hidden">Hidden Only</option>
             <option value="recent">Recent (7 days)</option>
           </select>
           <p className="text-sm text-gray-500 whitespace-nowrap">
@@ -204,7 +222,7 @@ export default function AdminRatingsPage() {
                 </tr>
               ) : (
                 ratings.map((rating) => (
-                  <tr key={rating._id} className="hover:bg-gray-50/50 transition-colors group">
+                  <tr key={rating._id} className={`hover:bg-gray-50/50 transition-colors group ${rating.isHidden ? 'bg-red-50/20' : rating.flagged ? 'bg-orange-50/20' : ''}`}>
                     <td className="px-6 py-4">
                       <div className="max-w-[200px]">
                         <p className="font-bold text-gray-900 truncate" title={rating.resourceId?.title}>
@@ -213,9 +231,6 @@ export default function AdminRatingsPage() {
                         <div className="flex gap-1 mt-1">
                           <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded">
                             {rating.resourceId?.subject?.name}
-                          </span>
-                          <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded">
-                            {rating.resourceId?.medium}
                           </span>
                         </div>
                       </div>
@@ -237,22 +252,33 @@ export default function AdminRatingsPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="max-w-[300px]">
-                        <p className="text-sm text-gray-600 line-clamp-2" title={rating.comment}>
-                          {rating.comment || <em className="text-gray-400">No comment</em>}
-                        </p>
-                        {rating.flagged && (
-                          <span className="inline-flex items-center mt-1 px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800">
-                            Flagged
-                          </span>
+                      <div className="max-w-[250px]">
+                        {rating.comment ? (
+                          <p className="text-sm text-gray-600 italic line-clamp-2" title={rating.comment}>
+                            "{rating.comment}"
+                          </p>
+                        ) : (
+                          <span className="text-gray-400">-</span>
                         )}
+                        <div className="flex gap-2 mt-1">
+                          {rating.flagged && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-orange-100 text-orange-800">
+                              Flagged
+                            </span>
+                          )}
+                          {rating.isHidden && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-red-100 text-red-800">
+                              Hidden
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
+                    <td className="px-6 py-4 text-xs text-gray-500 whitespace-nowrap">
                       {formatDate(rating.createdAt)}
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex items-center justify-end gap-2">
+                      <div className="flex items-center justify-end gap-1">
                         <Link
                           href={`/${rating.resourceId?.subject?.slug}/${rating.resourceId?.medium}/${rating.resourceId?.category?.slug}/${rating.resourceId?.slug}`}
                           target="_blank"
@@ -261,6 +287,7 @@ export default function AdminRatingsPage() {
                         >
                           <ArrowTopRightOnSquareIcon className="w-5 h-5" />
                         </Link>
+                        
                         <button
                           onClick={() => handleToggleFlag(rating._id, rating.flagged)}
                           className={`p-2 rounded-xl transition-all ${
@@ -272,10 +299,23 @@ export default function AdminRatingsPage() {
                         >
                           {rating.flagged ? <FlagSolid className="w-5 h-5" /> : <FlagIcon className="w-5 h-5" />}
                         </button>
+
+                        <button
+                          onClick={() => handleToggleHide(rating._id, rating.isHidden)}
+                          className={`p-2 rounded-xl transition-all ${
+                            rating.isHidden 
+                              ? "text-red-600 bg-red-50 hover:bg-red-100" 
+                              : "text-gray-400 hover:text-red-600 hover:bg-red-50"
+                          }`}
+                          title={rating.isHidden ? "Unhide Review" : "Hide Review"}
+                        >
+                          {rating.isHidden ? <EyeSlashIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
+                        </button>
+
                         <button
                           onClick={() => handleDelete(rating._id)}
                           className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
-                          title="Delete Review"
+                          title="Delete Rating"
                         >
                           <TrashIcon className="w-5 h-5" />
                         </button>

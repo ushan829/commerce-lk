@@ -37,7 +37,11 @@ export async function GET(
         { $match: { resourceId } },
         { $group: { _id: "$rating", count: { $sum: 1 } } },
       ]),
-      Rating.find({ resourceId, comment: { $exists: true, $ne: "" } })
+      Rating.find({ 
+        resourceId, 
+        comment: { $exists: true, $ne: "" },
+        isHidden: { $ne: true }
+      })
         .populate("userId", "name")
         .sort({ createdAt: -1 })
         .limit(10)
