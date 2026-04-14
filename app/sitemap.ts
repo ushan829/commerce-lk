@@ -4,16 +4,73 @@ import Subject from "@/models/Subject";
 import Category from "@/models/Category";
 import Resource from "@/models/Resource";
 
+const BASE_URL = "https://commerce.lk";
 const MEDIUMS = ["sinhala", "tamil", "english"];
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://commerce.lk";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const staticPages: MetadataRoute.Sitemap = [
+    {
+      url: `${BASE_URL}`,
+      lastModified: new Date(),
+      changeFrequency: "daily",
+      priority: 1.0,
+    },
+    {
+      url: `${BASE_URL}/about`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.5,
+    },
+    {
+      url: `${BASE_URL}/contact`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.5,
+    },
+    {
+      url: `${BASE_URL}/faq`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.6,
+    },
+    {
+      url: `${BASE_URL}/requests`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.6,
+    },
+    {
+      url: `${BASE_URL}/search`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.7,
+    },
+    {
+      url: `${BASE_URL}/terms`,
+      lastModified: new Date(),
+      changeFrequency: "yearly",
+      priority: 0.3,
+    },
+    {
+      url: `${BASE_URL}/privacy`,
+      lastModified: new Date(),
+      changeFrequency: "yearly",
+      priority: 0.3,
+    },
+    {
+      url: `${BASE_URL}/disclaimer`,
+      lastModified: new Date(),
+      changeFrequency: "yearly",
+      priority: 0.3,
+    },
+  ];
+
   try {
     await dbConnect();
 
     const [subjects, categories, resources] = await Promise.all([
-      Subject.find({ isActive: true }).lean(),
-      Category.find({ isActive: true }).lean(),
+      Subject.find({ isActive: true }).select("slug updatedAt").lean(),
+      Category.find({ isActive: true }).select("slug updatedAt").lean(),
       Resource.find({ isActive: true })
         .populate("subject", "slug")
         .populate("category", "slug")
@@ -21,50 +78,32 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         .lean(),
     ]);
 
-    const urls: MetadataRoute.Sitemap = [
-      {
-        url: BASE_URL,
-        lastModified: new Date(),
-        changeFrequency: "daily",
-        priority: 1,
-      },
-      {
-        url: `${BASE_URL}/login`,
-        lastModified: new Date(),
-        changeFrequency: "yearly",
-        priority: 0.3,
-      },
-      {
-        url: `${BASE_URL}/register`,
-        lastModified: new Date(),
-        changeFrequency: "yearly",
-        priority: 0.3,
-      },
-    ];
+    const dynamicPages: MetadataRoute.Sitemap = [];
 
-    // Subject pages
-    for (const subject of subjects as unknown as { slug: string; updatedAt?: Date }[]) {
-      urls.push({
+    // Subjects and Mediums
+    for (const subject of subjects as any[]) {
+      // /[subject]
+      dynamicPages.push({
         url: `${BASE_URL}/${subject.slug}`,
         lastModified: subject.updatedAt || new Date(),
         changeFrequency: "weekly",
         priority: 0.9,
       });
 
-      // Medium pages
+      // /[subject]/[medium]
       for (const medium of MEDIUMS) {
-        urls.push({
+        dynamicPages.push({
           url: `${BASE_URL}/${subject.slug}/${medium}`,
           lastModified: new Date(),
           changeFrequency: "weekly",
           priority: 0.8,
         });
 
-        // Category pages
-        for (const category of categories as unknown as { slug: string }[]) {
-          urls.push({
+        // /[subject]/[medium]/[category]
+        for (const category of categories as any[]) {
+          dynamicPages.push({
             url: `${BASE_URL}/${subject.slug}/${medium}/${category.slug}`,
-            lastModified: new Date(),
+            lastModified: category.updatedAt || new Date(),
             changeFrequency: "daily",
             priority: 0.7,
           });
@@ -72,16 +111,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       }
     }
 
-    // Resource pages
-    for (const resource of resources as unknown as {
-      slug: string;
-      medium: string;
-      subject: { slug: string };
-      category: { slug: string };
-      updatedAt?: Date;
-    }[]) {
+    // Resources
+    for (const resource of resources as any[]) {
       if (resource.subject?.slug && resource.category?.slug) {
-        urls.push({
+        dynamicPages.push({
           url: `${BASE_URL}/${resource.subject.slug}/${resource.medium}/${resource.category.slug}/${resource.slug}`,
           lastModified: resource.updatedAt || new Date(),
           changeFrequency: "monthly",
@@ -90,8 +123,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       }
     }
 
-    return urls;
-  } catch {
-    return [{ url: BASE_URL, lastModified: new Date(), priority: 1 }];
+    return [...staticPages, ...dynamicPages];
+  } catch (error) {
+    console.error("Sitemap error:", error);
+    return staticPages;
   }
 }

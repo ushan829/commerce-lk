@@ -58,7 +58,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const data = await getData(subjectSlug, medium);
   if (!data) return { title: "Not Found" };
   const mediumLabel = MEDIUM_LABELS[medium] || medium;
-  return { title: `${data.subject.name} - ${mediumLabel} Medium | Commerce.lk` };
+  const subjectName = data.subject.name;
+  return {
+    title: `${subjectName} ${mediumLabel} Medium - Study Materials`,
+    description: `Free ${subjectName} study materials in ${mediumLabel} medium for Sri Lanka A/L students.`,
+  };
 }
 
 export default async function MediumPage({ params }: Props) {
@@ -100,7 +104,7 @@ export default async function MediumPage({ params }: Props) {
                 <Link
                   key={cat._id}
                   href={`/${subjectSlug}/${medium}/${cat.slug}`}
-                  className="group bg-white rounded-2xl border border-gray-100 p-6 flex items-center justify-between shadow-sm hover:shadow-md hover:border-blue-100 transition-all"
+                  className="group bg-white rounded-2xl border border-gray-100 p-6 flex items-center justify-between shadow-sm hover:shadow-md transition-all"
                 >
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center group-hover:bg-blue-600 transition-colors">

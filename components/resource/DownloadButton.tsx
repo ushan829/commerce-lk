@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
+import { event } from '@/lib/gtag';
 import {
   ArrowDownTrayIcon,
   CheckCircleIcon,
@@ -57,6 +58,7 @@ export default function DownloadButton({ slug, title, pageUrl }: Props) {
     setLoading(true);
     setError("");
     try {
+      event({ action: 'download', category: 'Resource', label: title });
       const res = await fetch(`/api/resources/${slug}/download`);
       const data = await res.json();
       if (!data.downloadUrl) throw new Error("Failed to generate download link.");
@@ -175,6 +177,7 @@ export default function DownloadButton({ slug, title, pageUrl }: Props) {
         <div className="relative border border-blue-200 bg-blue-50 rounded-xl p-4">
           <button
             onClick={() => setShowGuestBanner(false)}
+            aria-label="Close"
             className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
           >
             <XMarkIcon className="w-4 h-4" />

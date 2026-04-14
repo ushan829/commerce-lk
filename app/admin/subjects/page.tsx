@@ -294,12 +294,7 @@ export default function SubjectsAdmin() {
               </div>
             </div>
             <div className="p-6 border-t border-gray-100 flex gap-3">
-              <button
-                onClick={() => setShowModal(false)}
-                className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-50 transition-all"
-              >
-                Cancel
-              </button>
+              <button onClick={() => setShowModal(false)} className="flex-1 px-4 py-2.5 border border-gray-100 rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-50 transition-all">Cancel</button>
               <button
                 onClick={handleSave}
                 disabled={saving}

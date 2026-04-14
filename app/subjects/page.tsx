@@ -8,9 +8,8 @@ import Subject from "@/models/Subject";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Subjects | Commerce.lk",
-  description: "Browse all A/L Commerce subjects and download free study materials.",
-  alternates: { canonical: "/subjects" },
+  title: 'Subjects',
+  description: 'Browse all A/L Commerce subjects and download free study materials.',
 };
 
 async function getSubjects() {

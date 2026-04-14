@@ -114,7 +114,7 @@ export default async function AdminDashboard() {
       </div>
 
       {/* Setup hint */}
-      <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-700">
+      <div className="mb-6 p-4 bg-blue-50 border border-gray-100 rounded-xl text-sm text-blue-700">
         <strong>Quick Setup:</strong> Visit{" "}
         <a
           href="/api/admin/seed"
@@ -144,7 +144,7 @@ export default async function AdminDashboard() {
           >
             <div className="flex items-center space-x-3">
               <div
-                className={`w-10 h-10 rounded-lg flex items-center justify-center ${colorMap[card.color]}`}
+                className={`w-10 h-10 rounded-xl flex items-center justify-center ${colorMap[card.color]}`}
               >
                 <card.icon className="w-5 h-5" />
               </div>

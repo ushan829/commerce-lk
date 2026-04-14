@@ -4,10 +4,8 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 
 export const metadata: Metadata = {
-  title: "Terms of Service — Commerce.lk",
-  description:
-    "Terms of Service for Commerce.lk. Read the terms that govern your use of the platform and its resources.",
-  alternates: { canonical: "/terms" },
+  title: 'Terms of Service',
+  description: 'Read the terms that govern your use of the Commerce.lk platform.',
 };
 
 export default function TermsPage() {

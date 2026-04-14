@@ -99,8 +99,8 @@ async function notifySubscribers(resource: {
   if (!populated) return;
 
   const subjectSlug = populated.subject.slug;
-  const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://commerce.lk";
-  const resourceUrl = `${SITE_URL}/${subjectSlug}/${resource.medium}/${populated.category.slug}/${populated.slug}`;
+  const baseUrl = process.env.NEXTAUTH_URL || "https://commerce.lk";
+  const resourceUrl = `${baseUrl}/${subjectSlug}/${resource.medium}/${populated.category.slug}/${(populated as any).slug}`;
 
   // Find all active, verified users who want new-resource emails
   // and whose subscription list includes this subject (or is empty = "all")

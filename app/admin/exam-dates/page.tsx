@@ -145,7 +145,7 @@ export default function ExamDatesPage() {
 
       {/* Add / Edit form */}
       {showForm && (
-        <div className="card p-6 mb-6 border-2 border-blue-200">
+        <div className="card p-6 mb-6 border border-gray-100">
           <h2 className="font-semibold text-gray-900 mb-4">
             {editId ? "Edit Exam Date" : "Add Exam Date"}
           </h2>
@@ -279,6 +279,7 @@ export default function ExamDatesPage() {
                 <div className="flex items-center gap-1 shrink-0">
                   <button
                     onClick={() => toggleActive(d)}
+                    aria-label={d.isActive ? "Hide from site" : "Show on site"}
                     title={d.isActive ? "Hide from site" : "Show on site"}
                     className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
                   >
@@ -290,12 +291,14 @@ export default function ExamDatesPage() {
                   </button>
                   <button
                     onClick={() => openEdit(d)}
+                    aria-label="Edit"
                     className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
                   >
                     <PencilSquareIcon className="w-5 h-5 text-gray-500" />
                   </button>
                   <button
                     onClick={() => handleDelete(d.id)}
+                    aria-label="Delete"
                     disabled={deletingId === d.id}
                     className="p-2 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50"
                   >

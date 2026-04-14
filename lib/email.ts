@@ -10,12 +10,13 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+const getBaseUrl = () => process.env.NEXTAUTH_URL || "https://commerce.lk";
 const FROM = process.env.EMAIL_FROM || "noreply@commerce.lk";
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://commerce.lk";
 const SITE_NAME = process.env.NEXT_PUBLIC_SITE_NAME || "Commerce.lk";
 
 // ── Shared HTML wrapper ──────────────────────────────────────────────────────
 function wrapEmail(title: string, body: string): string {
+  const baseUrl = getBaseUrl();
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -45,7 +46,7 @@ function wrapEmail(title: string, body: string): string {
             <p style="color: #6B7280; font-size: 12px; font-family: sans-serif; margin: 0 0 8px;">
               © 2026 Commerce.lk · Sri Lanka's #1 A/L Commerce Platform
             </p>
-            <a href="${SITE_URL}" style="color: #2563EB; font-size: 12px; font-family: sans-serif; text-decoration: none;">
+            <a href="${baseUrl}" style="color: #2563EB; font-size: 12px; font-family: sans-serif; text-decoration: none;">
               Visit Website
             </a>
           </td>
@@ -59,6 +60,7 @@ function wrapEmail(title: string, body: string): string {
 
 // ── Welcome Email ────────────────────────────────────────────────────────────
 export async function sendWelcomeEmail(to: string, name: string) {
+  const baseUrl = getBaseUrl();
   const body = `
     <h2 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#1e293b;">
       Welcome to ${SITE_NAME}, ${name}!
@@ -78,7 +80,7 @@ export async function sendWelcomeEmail(to: string, name: string) {
     </div>
 
     <div style="text-align:center;margin:32px 0;">
-      <a href="${SITE_URL}/subjects"
+      <a href="${baseUrl}/subjects"
          style="display: inline-block; background: #2563EB; color: white; padding: 14px 32px; border-radius: 10px; text-decoration: none; font-weight: 600; font-size: 15px; font-family: sans-serif;">
         Browse Subjects →
       </a>
@@ -99,6 +101,7 @@ export async function sendWelcomeEmail(to: string, name: string) {
 
 // ── Email Verification ───────────────────────────────────────────────────────
 export async function sendVerificationEmail(to: string, name: string, otp: string) {
+  const baseUrl = getBaseUrl();
   const body = `
     <h2 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#1e293b;">
       Verify Your Email Address
@@ -115,7 +118,7 @@ export async function sendVerificationEmail(to: string, name: string, otp: strin
     </div>
 
     <div style="text-align:center;margin:24px 0;">
-      <a href="${SITE_URL}/verify-email?otp=${otp}&email=${encodeURIComponent(to)}"
+      <a href="${baseUrl}/verify-email?otp=${otp}&email=${encodeURIComponent(to)}"
          style="display: inline-block; background: #2563EB; color: white; padding: 14px 32px; border-radius: 10px; text-decoration: none; font-weight: 600; font-size: 15px; font-family: sans-serif;">
         Verify Email Address →
       </a>
@@ -233,6 +236,7 @@ export async function sendRequestStatusEmail(opts: {
 }) {
   const { to, userName, resourceTitle, status, adminNote } = opts;
   const fulfilled = status === "fulfilled";
+  const baseUrl = getBaseUrl();
 
   const body = `
     <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#1e293b;">
@@ -257,7 +261,7 @@ export async function sendRequestStatusEmail(opts: {
 
     ${fulfilled ? `
     <div style="text-align:center;margin:28px 0;">
-      <a href="${SITE_URL}/subjects"
+      <a href="${baseUrl}/subjects"
          style="display: inline-block; background: #2563EB; color: white; padding: 14px 32px; border-radius: 10px; text-decoration: none; font-weight: 600; font-size: 15px; font-family: sans-serif;">
         Browse Resources →
       </a>
@@ -266,7 +270,7 @@ export async function sendRequestStatusEmail(opts: {
       We weren't able to source this material at this time. You're welcome to submit a new request in the future.
     </p>
     <div style="text-align:center;margin:24px 0;">
-      <a href="${SITE_URL}/requests"
+      <a href="${baseUrl}/requests"
          style="display: inline-block; background: #2563EB; color: white; padding: 14px 32px; border-radius: 10px; text-decoration: none; font-weight: 600; font-size: 15px; font-family: sans-serif;">
         Submit Another Request →
       </a>
@@ -298,6 +302,7 @@ export async function sendNewResourceAlert(opts: {
 }) {
   const { to, userName, resourceTitle, subjectName, categoryName, medium, resourceUrl } = opts;
   const mediumLabel = medium.charAt(0).toUpperCase() + medium.slice(1);
+  const baseUrl = getBaseUrl();
 
   const body = `
     <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#1e293b;">
@@ -331,7 +336,7 @@ export async function sendNewResourceAlert(opts: {
 
     <p style="margin:0;font-size:12px;color:#94a3b8;text-align:center;">
       You're receiving this because you subscribed to <strong>${subjectName}</strong> alerts.
-      <a href="${SITE_URL}/profile" style="color:#2563EB;text-decoration:none;">Manage preferences →</a>
+      <a href="${baseUrl}/profile" style="color:#2563EB;text-decoration:none;">Manage preferences →</a>
     </p>
   `;
 
@@ -345,7 +350,8 @@ export async function sendNewResourceAlert(opts: {
 
 // ── Password Reset ───────────────────────────────────────────────────────────
 export async function sendPasswordResetEmail(to: string, name: string, resetToken: string) {
-  const resetUrl = `${SITE_URL}/reset-password?token=${resetToken}`;
+  const baseUrl = getBaseUrl();
+  const resetUrl = `${baseUrl}/reset-password?token=${resetToken}`;
   const body = `
     <h2 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#1e293b;">
       Reset Your Password

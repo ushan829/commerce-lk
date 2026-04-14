@@ -58,8 +58,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { subject: slug } = await params;
   const subject = await getSubject(slug);
   if (!subject) return { title: "Not Found" };
-  const title = subject.seoTitle || `${subject.name} A/L Study Materials — Commerce.lk`;
-  return { title, alternates: { canonical: `/${slug}` } };
+  
+  const subjectName = subject.name;
+  return {
+    title: `${subjectName} - A/L Study Materials`,
+    description: `Free ${subjectName} study materials including past papers, model papers, short notes for A/L students in Sri Lanka.`,
+    alternates: { canonical: `/${slug}` }
+  };
 }
 
 export default async function SubjectPage({ params }: Props) {
@@ -109,7 +114,7 @@ export default async function SubjectPage({ params }: Props) {
                   <Link
                     key={m.value}
                     href={`/${slug}/${m.value}`}
-                    className="group relative flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white rounded-3xl border border-gray-100 p-8 shadow-sm hover:shadow-xl transition-all duration-300"
+                    className="group relative flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white rounded-3xl border border-gray-100 p-8 shadow-sm hover:shadow-md transition-all duration-300"
                   >
                     <div className="flex items-center gap-6">
                       <div className={`w-16 h-16 ${m.lightColor} rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform shrink-0`}>

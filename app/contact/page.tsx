@@ -10,9 +10,8 @@ import {
 } from "@heroicons/react/24/outline";
 
 export const metadata: Metadata = {
-  title: "Contact — Commerce.lk",
-  description: "Get in touch with us for resource requests, support, or legal inquiries.",
-  alternates: { canonical: "/contact" },
+  title: 'Contact Us',
+  description: 'Get in touch with the Commerce.lk team.',
 };
 
 const CHANNELS = [
@@ -81,7 +80,7 @@ export default function ContactPage() {
             </div>
 
             {/* Form Section */}
-            <div className="max-w-4xl mx-auto">
+            <div className="max-w-7xl mx-auto">
               <div className="bg-white p-12 rounded-3xl border border-gray-100 shadow-sm">
                 <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Send us a message</h2>
                 <ContactForm />

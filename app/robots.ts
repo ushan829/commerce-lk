@@ -1,17 +1,15 @@
 import { MetadataRoute } from "next";
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://commerce.lk";
-
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/admin/", "/api/", "/login", "/register"],
+        disallow: ["/admin", "/admin/", "/api/", "/profile", "/_next/"],
       },
     ],
-    sitemap: `${BASE_URL}/sitemap.xml`,
-    host: BASE_URL,
+    sitemap: "https://commerce.lk/sitemap.xml",
+    host: "https://commerce.lk",
   };
 }

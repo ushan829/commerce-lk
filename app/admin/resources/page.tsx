@@ -90,7 +90,7 @@ export default function ResourcesAdmin() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Link href="/admin/resources/import" className="inline-flex items-center gap-1.5 py-2 px-4 text-sm font-semibold rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition-colors">
+          <Link href="/admin/resources/import" className="inline-flex items-center gap-1.5 py-2 px-4 text-sm font-semibold rounded-lg border border-gray-100 bg-white text-gray-700 hover:bg-gray-50 transition-colors">
             <ArrowUpTrayIcon className="w-4 h-4" />
             Import CSV
           </Link>

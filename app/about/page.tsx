@@ -12,9 +12,8 @@ import {
 } from "@heroicons/react/24/outline";
 
 export const metadata: Metadata = {
-  title: "About — Commerce.lk",
-  description: "Learn more about Commerce.lk and our mission to provide free study materials for A/L students.",
-  alternates: { canonical: "/about" },
+  title: 'About Us',
+  description: "Learn about Commerce.lk - Sri Lanka's free A/L Commerce study platform.",
 };
 
 export default function AboutPage() {
@@ -64,7 +63,7 @@ export default function AboutPage() {
 
         {/* Content Section */}
         <section className="py-20 bg-gray-50">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="bg-white p-12 rounded-3xl border border-gray-100 shadow-sm">
                <h2 className="text-3xl font-bold text-gray-900 mb-8">Bridging the Gap</h2>
                <div className="prose prose-blue max-w-none text-gray-600 space-y-6 text-lg">

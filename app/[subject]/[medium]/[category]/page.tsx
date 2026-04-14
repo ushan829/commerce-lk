@@ -56,7 +56,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const data = await getData(subjectSlug, medium, categorySlug);
   if (!data) return { title: "Not Found" };
   const mediumLabel = MEDIUM_LABELS[medium] || medium;
-  return { title: `${data.category.name} - ${data.subject.name} ${mediumLabel} | Commerce.lk` };
+  const { subject, category } = data;
+  return {
+    title: `${category.name} - ${subject.name} ${mediumLabel}`,
+    description: `Download free ${subject.name} ${category.name} in ${mediumLabel} medium for A/L students.`,
+  };
 }
 
 export default async function CategoryPage({ params }: Props) {

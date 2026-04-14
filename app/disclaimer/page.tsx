@@ -4,10 +4,8 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 
 export const metadata: Metadata = {
-  title: "Disclaimer — Commerce.lk",
-  description:
-    "Disclaimer for Commerce.lk regarding the sourcing and use of educational materials, including past papers and term test papers from the Department of Education and government schools.",
-  alternates: { canonical: "/disclaimer" },
+  title: 'Disclaimer',
+  description: 'Important information regarding the sourcing and use of educational materials on Commerce.lk.',
 };
 
 export default function DisclaimerPage() {

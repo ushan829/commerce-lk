@@ -3,73 +3,45 @@ import "./globals.css";
 import SessionProvider from "@/components/providers/SessionProvider";
 import { PWAProvider } from "@/components/providers/PWAProvider";
 import { Toaster } from "react-hot-toast";
+import GoogleAnalytics from '@/components/analytics/GoogleAnalytics';
+import PageViewTracker from '@/components/analytics/PageViewTracker';
+import { Suspense } from 'react';
 
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL || "https://commerce.lk"
-  ),
+  metadataBase: new URL('https://commerce.lk'),
   title: {
-    default: "Commerce.lk | A/L Commerce Study Materials - Past Papers, Model Papers & Notes",
-    template: "%s | Commerce.lk",
+    template: '%s | Commerce.lk',
+    default: 'Commerce.lk - Free A/L Commerce Study Materials',
   },
-  description:
-    "Sri Lanka's #1 platform for A/L Commerce study materials. Download free Past Papers, Model Papers, Short Notes, Marking Schemes, and Term Test Papers for Accounting, Business Studies, Economics, Business Statistics, ICT, and more.",
-  keywords: [
-    "A/L commerce",
-    "past papers",
-    "model papers",
-    "accounting",
-    "business studies",
-    "economics",
-    "Sri Lanka",
-    "sinhala medium",
-    "tamil medium",
-  ],
-  authors: [{ name: "Commerce.lk" }],
-  creator: "Commerce.lk",
-  publisher: "Commerce.lk",
+  description: 'Free A/L Commerce study materials for Sri Lankan students. Download past papers, model papers, short notes and more.',
+  keywords: ['A/L Commerce', 'Sri Lanka', 'past papers', 'model papers', 'accounting', 'business studies', 'economics', 'ICT'],
+  openGraph: {
+    type: 'website',
+    locale: 'en_LK',
+    url: 'https://commerce.lk',
+    siteName: 'Commerce.lk',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Commerce.lk',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    site: '@commercelk',
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     title: "Commerce.lk",
     statusBarStyle: "default",
-  },
-  openGraph: {
-    type: "website",
-    locale: "en_US",
-    url: "https://commerce.lk",
-    siteName: "Commerce.lk",
-    title: "Commerce.lk | A/L Commerce Study Materials",
-    description:
-      "Sri Lanka's #1 platform for A/L Commerce study materials. Free Past Papers, Model Papers, Short Notes, and more.",
-    images: [
-      {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "Commerce.lk",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Commerce.lk | A/L Commerce Study Materials",
-    description: "Sri Lanka's #1 platform for A/L Commerce study materials.",
-    images: ["/og-image.png"],
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      "max-video-preview": -1,
-      "max-image-preview": "large",
-      "max-snippet": -1,
-    },
-  },
-  alternates: {
-    canonical: "https://commerce.lk",
   },
 };
 
@@ -118,6 +90,10 @@ export default function RootLayout({
             }}
           />
         </SessionProvider>
+        <GoogleAnalytics />
+        <Suspense fallback={null}>
+          <PageViewTracker />
+        </Suspense>
       </body>
     </html>
   );

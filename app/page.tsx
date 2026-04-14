@@ -16,9 +16,8 @@ import {
 import AdBanner from "@/components/ads/AdBanner";
 
 export const metadata: Metadata = {
-  title: "Commerce.lk | Free A/L Commerce Study Materials",
-  description: "Download free A/L Commerce past papers, model papers, notes and more in Sinhala, Tamil and English.",
-  alternates: { canonical: "/" },
+  title: 'Free A/L Commerce Study Materials for Sri Lankan Students',
+  description: 'Download free A/L Accounting, Business Studies, Economics, ICT past papers, model papers, short notes and more.',
 };
 
 async function getSubjects() {

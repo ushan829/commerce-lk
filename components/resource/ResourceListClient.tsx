@@ -92,7 +92,7 @@ export default function ResourceListClient({ resources, subjectName, categoryNam
         {sortedResources.map((resource) => (
           <div
             key={resource._id}
-            className="group bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300"
+            className="group bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300"
           >
             <Link href={`${baseUrl}/${resource.slug}`} className="block relative aspect-video bg-gray-50">
               {resource.thumbnail || resource.ogImage ? (
@@ -155,7 +155,7 @@ export default function ResourceListClient({ resources, subjectName, categoryNam
       </div>
 
       {sortedResources.length === 0 && (
-        <div className="text-center py-20 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200">
+        <div className="text-center py-20 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-100">
           <p className="text-gray-400 text-lg">No resources found in this category yet.</p>
         </div>
       )}

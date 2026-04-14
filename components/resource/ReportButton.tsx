@@ -71,7 +71,7 @@ export default function ReportButton({ slug, title }: Props) {
                 <FlagSolid className="w-5 h-5 text-red-500" />
                 <h2 className="font-bold text-gray-900 text-lg">Report a Problem</h2>
               </div>
-              <button onClick={handleClose} className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors">
+              <button onClick={handleClose} aria-label="Close" className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors">
                 <XMarkIcon className="w-5 h-5" />
               </button>
             </div>

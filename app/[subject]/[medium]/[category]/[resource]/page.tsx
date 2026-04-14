@@ -25,6 +25,7 @@ import {
 } from "@heroicons/react/24/outline";
 import Image from "next/image";
 import AdBanner from "@/components/ads/AdBanner";
+import ResourcePageViewTracker from "@/components/analytics/ResourcePageViewTracker";
 
 export const dynamic = "force-dynamic";
 
@@ -90,7 +91,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { subject: subjectSlug, medium, category: categorySlug, resource: resourceSlug } = await params;
   const data = await getData(subjectSlug, medium, categorySlug, resourceSlug);
   if (!data) return { title: "Not Found" };
-  return { title: `${data.resource.title} | Commerce.lk` };
+  
+  const { resource } = data;
+  const description = resource.description 
+    ? resource.description.substring(0, 160) 
+    : `Download ${resource.title} for A/L students in Sri Lanka. Free study materials on Commerce.lk.`;
+
+  return { 
+    title: `${resource.title}`,
+    description,
+    openGraph: {
+      title: resource.title,
+      description,
+      images: resource.ogImage || resource.thumbnail ? [{ url: resource.ogImage || resource.thumbnail }] : [],
+    }
+  };
 }
 
 export default async function ResourcePage({ params }: Props) {
@@ -104,6 +119,7 @@ export default async function ResourcePage({ params }: Props) {
 
   return (
     <>
+      <ResourcePageViewTracker title={resource.title} />
       <Header />
       <main className="min-h-screen bg-gray-50 pb-20">
         {/* Breadcrumb */}
@@ -123,7 +139,7 @@ export default async function ResourcePage({ params }: Props) {
 
         <AdBanner position="resource-top" />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mt-0">
             {/* Left Content (70%) */}
             <div className="lg:col-span-8">

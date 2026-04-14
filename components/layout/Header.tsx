@@ -72,6 +72,7 @@ export default function Header() {
           <div className="hidden md:flex items-center gap-4">
             <button
               onClick={() => router.push("/search")}
+              aria-label="Search"
               className="p-2 text-gray-600 hover:text-blue-600 transition-colors"
             >
               <MagnifyingGlassIcon className="w-6 h-6" />
@@ -135,12 +136,14 @@ export default function Header() {
           <div className="md:hidden flex items-center gap-4">
             <button
               onClick={() => router.push("/search")}
+              aria-label="Search"
               className="p-2 text-gray-600"
             >
               <MagnifyingGlassIcon className="w-6 h-6" />
             </button>
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
+              aria-label="Toggle Menu"
               className="p-2 text-gray-600"
             >
               {mobileOpen ? (
@@ -155,7 +158,7 @@ export default function Header() {
 
       {/* Mobile Menu */}
       {mobileOpen && (
-        <div className="md:hidden bg-white border-t border-gray-100 absolute top-20 left-0 w-full shadow-lg py-4 px-4 space-y-4">
+        <div className="md:hidden bg-white/90 backdrop-blur-md border-t border-gray-100 absolute top-20 left-0 w-full shadow-lg py-4 px-4 space-y-4">
           {navLinks.map((link) => (
             <Link
               key={link.label}
@@ -179,7 +182,7 @@ export default function Header() {
               <>
                 <Link
                   href="/login"
-                  className="btn-secondary w-full text-center"
+                  className="text-gray-600 hover:text-blue-600 font-medium px-4 py-2 transition-colors text-center"
                   onClick={() => setMobileOpen(false)}
                 >
                   Sign In

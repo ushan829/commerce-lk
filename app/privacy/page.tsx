@@ -4,10 +4,8 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy — Commerce.lk",
-  description:
-    "Privacy Policy for Commerce.lk. Learn what personal data we collect, how it is used, and your rights over that data.",
-  alternates: { canonical: "/privacy" },
+  title: 'Privacy Policy',
+  description: 'Learn about how Commerce.lk handles your data and privacy.',
 };
 
 export default function PrivacyPage() {

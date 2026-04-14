@@ -53,7 +53,7 @@ export default function EditProfileModal({ profile, onClose, onUpdate }: Props) 
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
         <div className="p-6 border-b border-gray-100 flex items-center justify-between">
           <h2 className="text-2xl font-bold text-gray-900">Edit Profile</h2>
-          <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors">
+          <button onClick={onClose} aria-label="Close" className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors">
             <XMarkIcon className="w-6 h-6" />
           </button>
         </div>

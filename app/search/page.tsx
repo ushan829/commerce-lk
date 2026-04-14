@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { event } from "@/lib/gtag";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import {
@@ -25,6 +26,7 @@ function SearchContent() {
     if (!q) return;
     setLoading(true);
     setSearched(true);
+    event({ action: 'search', category: 'Search', label: q });
     try {
       const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
       const data = await res.json();
@@ -85,7 +87,7 @@ function SearchContent() {
 
         {/* Results */}
         <section className="py-20">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             {loading ? (
               <div className="space-y-4">
                 {[1, 2, 3].map(i => (

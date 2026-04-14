@@ -228,7 +228,7 @@ export default function EditResourcePage({ params }: { params: Promise<{ slug: s
           </label>
         </div>
         <div className="flex gap-3 pt-2">
-          <button onClick={() => router.back()} className="px-6 py-2.5 border border-gray-200 rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-50 transition-all">Cancel</button>
+          <button onClick={() => router.back()} className="px-6 py-2.5 border border-gray-100 rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-50 transition-all">Cancel</button>
           <button onClick={handleSave} disabled={saving} className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-blue-600/20 transition-all">
             {saving ? "Saving..." : "Save Changes"}
           </button>

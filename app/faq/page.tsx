@@ -10,10 +10,8 @@ import {
 } from "@heroicons/react/24/outline";
 
 export const metadata: Metadata = {
-  title: "Frequently Asked Questions — Commerce.lk",
-  description:
-    "Answers to common questions about Commerce.lk — what the platform offers, how to download resources, accounts, and where the materials come from.",
-  alternates: { canonical: "/faq" },
+  title: 'Frequently Asked Questions',
+  description: 'Find answers to common questions about Commerce.lk.',
 };
 
 interface FAQItem {
@@ -179,7 +177,7 @@ export default function FAQPage() {
 
         {/* Main content */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-          <div className="max-w-3xl mx-auto space-y-16">
+          <div className="max-w-7xl mx-auto space-y-16">
             {SECTIONS.map((section) => (
               <section key={section.id} id={section.id}>
                 <div className="flex items-center gap-3 mb-8">
