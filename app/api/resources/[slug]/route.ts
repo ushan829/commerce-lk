@@ -3,7 +3,7 @@ import dbConnect from "@/lib/mongodb";
 import Resource from "@/models/Resource";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { deleteFromR2 } from "@/lib/r2";
+import { deleteFromR2, getPublicFileUrl } from "@/lib/r2";
 
 export async function GET(
   _req: NextRequest,
@@ -14,12 +14,17 @@ export async function GET(
     await dbConnect();
     const resource = await Resource.findOne({ slug, isActive: true })
       .populate("subject", "name slug color icon")
-      .populate("category", "name slug icon");
+      .populate("category", "name slug icon")
+      .lean();
 
     if (!resource)
       return NextResponse.json({ error: "Resource not found" }, { status: 404 });
 
-    await Resource.findByIdAndUpdate(resource._id, { $inc: { viewCount: 1 } });
+    if ((resource as any).fileUrl) (resource as any).fileUrl = getPublicFileUrl((resource as any).fileUrl);
+    if ((resource as any).thumbnail) (resource as any).thumbnail = getPublicFileUrl((resource as any).thumbnail);
+    if ((resource as any).ogImage) (resource as any).ogImage = getPublicFileUrl((resource as any).ogImage);
+
+    await Resource.findByIdAndUpdate((resource as any)._id, { $inc: { viewCount: 1 } });
     return NextResponse.json({ resource });
   } catch {
     return NextResponse.json({ error: "Failed to fetch resource" }, { status: 500 });

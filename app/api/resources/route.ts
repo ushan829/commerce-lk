@@ -8,6 +8,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { createSlug } from "@/lib/utils";
 import { sendNewResourceAlert } from "@/lib/email";
+import { getPublicFileUrl } from "@/lib/r2";
 
 export async function GET(req: NextRequest) {
   try {
@@ -40,10 +41,18 @@ export async function GET(req: NextRequest) {
       .populate("category", "name slug icon")
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
-      .limit(limit);
+      .limit(limit)
+      .lean();
+
+    const cleanedResources = (resources as any[]).map(r => ({
+      ...r,
+      fileUrl: r.fileUrl ? getPublicFileUrl(r.fileUrl) : r.fileUrl,
+      thumbnail: r.thumbnail ? getPublicFileUrl(r.thumbnail) : r.thumbnail,
+      ogImage: r.ogImage ? getPublicFileUrl(r.ogImage) : r.ogImage,
+    }));
 
     return NextResponse.json({
-      resources,
+      resources: cleanedResources,
       pagination: { total, page, limit, pages: Math.ceil(total / limit) },
     });
   } catch {

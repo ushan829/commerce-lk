@@ -15,6 +15,7 @@ import Subject from "@/models/Subject";
 import Category from "@/models/Category";
 import Resource from "@/models/Resource";
 import { formatDate } from "@/lib/utils";
+import { getPublicFileUrl } from "@/lib/r2";
 import {
   ChevronRightIcon,
   ArrowDownTrayIcon,
@@ -67,6 +68,16 @@ async function getData(
 
   if (!resource) return null;
 
+  if ((resource as any).fileUrl) {
+    (resource as any).fileUrl = getPublicFileUrl((resource as any).fileUrl);
+  }
+  if ((resource as any).thumbnail) {
+    (resource as any).thumbnail = getPublicFileUrl((resource as any).thumbnail);
+  }
+  if ((resource as any).ogImage) {
+    (resource as any).ogImage = getPublicFileUrl((resource as any).ogImage);
+  }
+
   Resource.findByIdAndUpdate((resource as any)._id, { $inc: { viewCount: 1 } }).catch(() => {});
 
   const related = await Resource.find({
@@ -80,9 +91,15 @@ async function getData(
     .limit(5)
     .lean();
 
+  const cleanedRelated = (related as any[]).map(r => ({
+    ...r,
+    thumbnail: r.thumbnail ? getPublicFileUrl(r.thumbnail) : r.thumbnail,
+    ogImage: r.ogImage ? getPublicFileUrl(r.ogImage) : r.ogImage
+  }));
+
   return {
     resource: JSON.parse(JSON.stringify(resource)),
-    related: JSON.parse(JSON.stringify(related)),
+    related: JSON.parse(JSON.stringify(cleanedRelated)),
   };
 }
 

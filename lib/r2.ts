@@ -68,6 +68,27 @@ export function getPublicUrl(key: string): string {
   return `${PUBLIC_URL}/${key}`;
 }
 
+export function getPublicFileUrl(fileUrl: string): string {
+  if (!fileUrl) return fileUrl;
+  
+  try {
+    // If it's already using the public URL, return as is
+    if (fileUrl.startsWith(PUBLIC_URL)) return fileUrl;
+
+    const url = new URL(fileUrl);
+    const pathname = url.pathname;
+    
+    // Remove bucket name from path if present (common in R2 S3-style URLs)
+    let fileKey = pathname.startsWith(`/${BUCKET}/`) 
+      ? pathname.replace(`/${BUCKET}/`, "")
+      : pathname.replace(/^\//, "");
+    
+    return `${PUBLIC_URL}/${fileKey}`;
+  } catch {
+    return fileUrl;
+  }
+}
+
 export async function getObjectBuffer(
   key: string
 ): Promise<{ buffer: Uint8Array; contentType: string }> {
