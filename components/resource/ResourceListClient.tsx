@@ -136,11 +136,11 @@ export default function ResourceListClient({ resources, subjectName, categoryNam
               <div className="flex items-center gap-3 text-xs text-gray-500 mt-auto pt-4 border-t border-gray-100">
                 <span className="flex items-center gap-1">
                   <ArrowDownTrayIcon className="w-3.5 h-3.5" />
-                  <span>{resource.downloadCount ?? resource.downloads ?? 0}</span>
+                  <span>{resource.downloadCount ?? 0}</span>
                 </span>
                 <span className="flex items-center gap-1">
                   <EyeIcon className="w-3.5 h-3.5" />
-                  <span>{resource.viewCount ?? resource.views ?? 0}</span>
+                  <span>{resource.viewCount ?? 0}</span>
                 </span>
                 <span className="ml-auto whitespace-nowrap flex items-center gap-1">
                   <CalendarIcon className="w-3.5 h-3.5" />
