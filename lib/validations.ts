@@ -74,7 +74,7 @@ export function validateInput<T>(schema: z.ZodSchema<T>, data: unknown): {
 } {
   const result = schema.safeParse(data)
   if (!result.success) {
-    const firstError = result.error.errors[0]
+    const firstError = result.error.issues[0]
     return { success: false, error: firstError.message }
   }
   return { success: true, data: result.data }
