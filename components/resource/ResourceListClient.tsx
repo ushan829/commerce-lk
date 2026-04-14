@@ -92,9 +92,9 @@ export default function ResourceListClient({ resources, subjectName, categoryNam
         {sortedResources.map((resource) => (
           <div
             key={resource._id}
-            className="group bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300"
+            className="group bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 flex flex-col h-full"
           >
-            <Link href={`${baseUrl}/${resource.slug}`} className="block relative aspect-video bg-gray-50">
+            <Link href={`${baseUrl}/${resource.slug}`} className="block relative aspect-video bg-gray-50 flex-shrink-0">
               {resource.thumbnail || resource.ogImage ? (
                 <Image
                   src={(resource.thumbnail || resource.ogImage)!}
@@ -117,7 +117,7 @@ export default function ResourceListClient({ resources, subjectName, categoryNam
               </div>
             </Link>
 
-            <div className="p-6">
+            <div className="p-6 flex flex-col flex-grow">
               <div className="flex items-center gap-2 mb-3">
                 <span className="px-2 py-0.5 rounded-md bg-blue-50 text-blue-600 text-[10px] font-bold uppercase tracking-wider">
                   {subjectName}
@@ -133,21 +133,25 @@ export default function ResourceListClient({ resources, subjectName, categoryNam
                 </h3>
               </Link>
 
-              <div className="pt-4 border-t border-gray-100 flex items-center justify-between text-gray-500 text-sm">
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-1">
-                    <ArrowDownTrayIcon className="w-4 h-4" />
-                    <span>{resource.downloadCount || 0}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <EyeIcon className="w-4 h-4" />
-                    <span>{resource.viewCount || 0}</span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-1">
-                  <CalendarIcon className="w-4 h-4" />
-                  <span>{formatDate(resource.createdAt)}</span>
-                </div>
+              <div className="flex items-center gap-3 text-xs text-gray-500 mt-auto pt-4 border-t border-gray-100">
+                <span className="flex items-center gap-1">
+                  <ArrowDownTrayIcon className="w-3.5 h-3.5" />
+                  <span>{resource.downloadCount ?? resource.downloads ?? 0}</span>
+                </span>
+                <span className="flex items-center gap-1">
+                  <EyeIcon className="w-3.5 h-3.5" />
+                  <span>{resource.viewCount ?? resource.views ?? 0}</span>
+                </span>
+                <span className="ml-auto whitespace-nowrap flex items-center gap-1">
+                  <CalendarIcon className="w-3.5 h-3.5" />
+                  <span>
+                    {resource.createdAt ? new Date(resource.createdAt).toLocaleDateString('en-GB', { 
+                      day: 'numeric', 
+                      month: 'short', 
+                      year: 'numeric' 
+                    }) : ''}
+                  </span>
+                </span>
               </div>
             </div>
           </div>

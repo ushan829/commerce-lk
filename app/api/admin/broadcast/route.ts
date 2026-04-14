@@ -5,14 +5,10 @@ import dbConnect from "@/lib/mongodb";
 import Broadcast from "@/models/Broadcast";
 import User from "@/models/User";
 import { sendBroadcastEmail } from "@/lib/email";
-import { rateLimit } from "@/lib/rateLimit";
+import { broadcastRateLimit, checkRateLimit } from "@/lib/rateLimit";
 import { validateInput, broadcastSchema } from "@/lib/validations";
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-export async function GET() {
-  // ... GET logic ...
-}
 
 export async function POST(req: NextRequest) {
   try {
@@ -21,7 +17,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { success } = rateLimit(`broadcast:${(session.user as { id: string }).id}`, 2, 60 * 60 * 1000);
+    const userId = (session.user as { id: string }).id || session.user?.email || 'unknown';
+    const { success } = await checkRateLimit(broadcastRateLimit, userId);
     if (!success) {
       return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 });
     }

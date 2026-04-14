@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import Resource from "@/models/Resource";
 import Report from "@/models/Report";
-import { rateLimit } from "@/lib/rateLimit";
+import { reportRateLimit, checkRateLimit } from "@/lib/rateLimit";
 
 const REASONS = ["broken-file", "wrong-content", "incorrect-year", "duplicate", "other"];
 
@@ -11,8 +11,8 @@ export async function POST(
   { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
-    const { success } = rateLimit(`report:${ip}`, 5, 60 * 1000);
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown';
+    const { success } = await checkRateLimit(reportRateLimit, ip);
     if (!success) {
       return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 });
     }

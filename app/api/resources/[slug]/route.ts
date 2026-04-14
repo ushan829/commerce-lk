@@ -4,6 +4,7 @@ import Resource from "@/models/Resource";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { deleteFromR2, getPublicFileUrl } from "@/lib/r2";
+import redis from "@/lib/redis";
 
 export async function GET(
   _req: NextRequest,
@@ -46,6 +47,13 @@ export async function PUT(
     const resource = await Resource.findOneAndUpdate({ slug }, body, { new: true });
     if (!resource)
       return NextResponse.json({ error: "Resource not found" }, { status: 404 });
+
+    // Invalidate cache
+    const keys = await redis.keys("resources:*");
+    if (keys.length > 0) {
+      await redis.del(...keys);
+    }
+
     return NextResponse.json({ resource });
   } catch {
     return NextResponse.json({ error: "Failed to update resource" }, { status: 500 });
@@ -69,6 +77,12 @@ export async function DELETE(
       if (resource.thumbnail) await deleteFromR2(resource.thumbnail);
       if (resource.ogImage) await deleteFromR2(resource.ogImage);
       await Resource.findByIdAndDelete(resource._id);
+
+      // Invalidate cache
+      const keys = await redis.keys("resources:*");
+      if (keys.length > 0) {
+        await redis.del(...keys);
+      }
     }
     return NextResponse.json({ message: "Resource deleted" });
   } catch {

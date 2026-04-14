@@ -6,6 +6,7 @@ import Resource from "@/models/Resource";
 import Subject from "@/models/Subject";
 import Category from "@/models/Category";
 import { createSlug } from "@/lib/utils";
+import redis from "@/lib/redis";
 
 export async function POST(req: NextRequest) {
   try {
@@ -93,8 +94,17 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    const createdCount = results.filter((r) => r.success).length;
+    // Invalidate cache
+    if (createdCount > 0) {
+      const keys = await redis.keys("resources:*");
+      if (keys.length > 0) {
+        await redis.del(...keys);
+      }
+    }
+
     return NextResponse.json({
-      created: results.filter((r) => r.success).length,
+      created: createdCount,
       failed: results.filter((r) => !r.success).length,
       results,
     });

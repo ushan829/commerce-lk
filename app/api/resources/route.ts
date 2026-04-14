@@ -9,27 +9,33 @@ import { authOptions } from "@/lib/auth";
 import { createSlug } from "@/lib/utils";
 import { sendNewResourceAlert } from "@/lib/email";
 import { getPublicFileUrl } from "@/lib/r2";
+import redis from "@/lib/redis";
 
 export async function GET(req: NextRequest) {
   try {
-    await dbConnect();
     const { searchParams } = new URL(req.url);
 
-    const subjectSlug = searchParams.get("subject");
-    const medium = searchParams.get("medium");
-    const categorySlug = searchParams.get("category");
-    const featured = searchParams.get("featured");
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "20");
+    const subjectSlug = searchParams.get("subject") || "all";
+    const medium = searchParams.get("medium") || "all";
+    const categorySlug = searchParams.get("category") || "all";
+    const featured = searchParams.get("featured") || "false";
+    const page = searchParams.get("page") || "1";
+    const limit = searchParams.get("limit") || "20";
+
+    const cacheKey = `resources:${subjectSlug}:${medium}:${categorySlug}:${featured}:${page}:${limit}`;
+    const cached = await redis.get(cacheKey);
+    if (cached) return NextResponse.json(cached);
+
+    await dbConnect();
 
     const query: Record<string, unknown> = { isActive: true };
 
-    if (subjectSlug) {
+    if (subjectSlug !== "all") {
       const subject = await Subject.findOne({ slug: subjectSlug });
       if (subject) query.subject = subject._id;
     }
-    if (medium) query.medium = medium;
-    if (categorySlug) {
+    if (medium !== "all") query.medium = medium;
+    if (categorySlug !== "all") {
       const category = await Category.findOne({ slug: categorySlug });
       if (category) query.category = category._id;
     }
@@ -40,8 +46,8 @@ export async function GET(req: NextRequest) {
       .populate("subject", "name slug color icon")
       .populate("category", "name slug icon")
       .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(limit)
+      .skip((parseInt(page) - 1) * parseInt(limit))
+      .limit(parseInt(limit))
       .lean();
 
     const cleanedResources = (resources as any[]).map(r => ({
@@ -51,10 +57,18 @@ export async function GET(req: NextRequest) {
       ogImage: r.ogImage ? getPublicFileUrl(r.ogImage) : r.ogImage,
     }));
 
-    return NextResponse.json({
+    const result = {
       resources: cleanedResources,
-      pagination: { total, page, limit, pages: Math.ceil(total / limit) },
-    });
+      pagination: { 
+        total, 
+        page: parseInt(page), 
+        limit: parseInt(limit), 
+        pages: Math.ceil(total / parseInt(limit)) 
+      },
+    };
+
+    await redis.set(cacheKey, result, { ex: 300 }); // cache 5 minutes
+    return NextResponse.json(result);
   } catch {
     return NextResponse.json({ error: "Failed to fetch resources" }, { status: 500 });
   }
@@ -100,6 +114,12 @@ export async function POST(req: NextRequest) {
       seoDescription,
       uploadedBy: (session.user as { id?: string }).id,
     });
+
+    // Invalidate cache
+    const keys = await redis.keys("resources:*");
+    if (keys.length > 0) {
+      await redis.del(...keys);
+    }
 
     // Fire-and-forget: notify subscribed users
     if (resource.isActive) {

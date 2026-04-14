@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import dbConnect from "@/lib/mongodb";
 import Resource from "@/models/Resource";
+import redis from "@/lib/redis";
 
 export async function POST(
   _req: NextRequest,
@@ -40,6 +41,12 @@ export async function POST(
       ratingAvg: 0,
       ratingCount: 0,
     });
+
+    // Invalidate cache
+    const keys = await redis.keys("resources:*");
+    if (keys.length > 0) {
+      await redis.del(...keys);
+    }
 
     return NextResponse.json({ slug: dup.slug }, { status: 201 });
   } catch (error: unknown) {

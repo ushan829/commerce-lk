@@ -1,100 +1,103 @@
-const rateLimitMap = new Map<string, { count: number; resetTime: number }>()
+import { Ratelimit } from '@upstash/ratelimit'
+import { Redis } from '@upstash/redis'
 
-export function rateLimit(
-  identifier: string,
-  maxRequests: number = 5,
-  windowMs: number = 60 * 1000
-): { success: boolean; remaining: number } {
-  const now = Date.now()
-  const record = rateLimitMap.get(identifier)
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL!,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+})
 
-  if (!record || now > record.resetTime) {
-    rateLimitMap.set(identifier, { count: 1, resetTime: now + windowMs })
-    return { success: true, remaining: maxRequests - 1 }
-  }
+// Auth endpoints: 5 requests per minute
+export const authRateLimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(5, '1 m'),
+  prefix: 'rl:auth',
+})
 
-  if (record.count >= maxRequests) {
-    return { success: false, remaining: 0 }
-  }
+// Forgot password: 3 requests per minute
+export const forgotPasswordRateLimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(3, '1 m'),
+  prefix: 'rl:forgot',
+})
 
-  record.count++
-  return { success: true, remaining: maxRequests - record.count }
+// Contact form: 3 requests per minute
+export const contactRateLimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(3, '1 m'),
+  prefix: 'rl:contact',
+})
+
+// Report: 5 requests per minute
+export const reportRateLimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(5, '1 m'),
+  prefix: 'rl:report',
+})
+
+// Broadcast: 2 requests per hour (admin)
+export const broadcastRateLimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(2, '1 h'),
+  prefix: 'rl:broadcast',
+})
+
+// Helper function
+export async function checkRateLimit(
+  limiter: Ratelimit,
+  identifier: string
+): Promise<{ success: boolean; remaining: number }> {
+  const { success, remaining } = await limiter.limit(identifier)
+  return { success, remaining }
 }
 
-export const loginAttempts = new Map<string, { count: number; lockedUntil: number | null }>()
-
-export function checkLoginAttempts(email: string): { 
+// Account lockout functions using Redis
+export async function checkLoginAttempts(email: string): Promise<{
   allowed: boolean
   remainingAttempts: number
-  lockedUntil: number | null 
-} {
+  lockedUntil: number | null
+}> {
+  const key = `lockout:${email.toLowerCase()}`
   const MAX_ATTEMPTS = 5
+  
+  const data = await redis.get<{ count: number; lockedUntil: number | null }>(key)
+  
+  if (!data) return { allowed: true, remainingAttempts: MAX_ATTEMPTS, lockedUntil: null }
+  
   const now = Date.now()
-  
-  const record = loginAttempts.get(email.toLowerCase())
-  
-  if (!record) return { allowed: true, remainingAttempts: MAX_ATTEMPTS, lockedUntil: null }
-  
-  // If locked, check if lockout expired
-  if (record.lockedUntil && now < record.lockedUntil) {
-    return { allowed: false, remainingAttempts: 0, lockedUntil: record.lockedUntil }
+  if (data.lockedUntil && now < data.lockedUntil) {
+    return { allowed: false, remainingAttempts: 0, lockedUntil: data.lockedUntil }
   }
   
-  // If lockout expired, reset
-  if (record.lockedUntil && now >= record.lockedUntil) {
-    loginAttempts.delete(email.toLowerCase())
-    return { allowed: true, remainingAttempts: MAX_ATTEMPTS, lockedUntil: null }
-  }
-  
-  return { 
-    allowed: true, 
-    remainingAttempts: MAX_ATTEMPTS - record.count,
-    lockedUntil: null 
+  return {
+    allowed: true,
+    remainingAttempts: MAX_ATTEMPTS - data.count,
+    lockedUntil: null
   }
 }
 
-export function recordFailedLogin(email: string): { 
+export async function recordFailedLogin(email: string): Promise<{
   count: number
   locked: boolean
-  lockedUntil: number | null 
-} {
+  lockedUntil: number | null
+}> {
+  const key = `lockout:${email.toLowerCase()}`
   const MAX_ATTEMPTS = 5
-  const LOCKOUT_MS = 15 * 60 * 1000
-  const now = Date.now()
+  const LOCKOUT_MS = 15 * 60 * 1000 // 15 minutes
   
-  const record = loginAttempts.get(email.toLowerCase()) || { count: 0, lockedUntil: null }
-  record.count++
+  const data = await redis.get<{ count: number; lockedUntil: number | null }>(key) || { count: 0, lockedUntil: null }
+  data.count++
   
-  if (record.count >= MAX_ATTEMPTS) {
-    record.lockedUntil = now + LOCKOUT_MS
-    loginAttempts.set(email.toLowerCase(), record)
-    return { count: record.count, locked: true, lockedUntil: record.lockedUntil }
+  if (data.count >= MAX_ATTEMPTS) {
+    data.lockedUntil = Date.now() + LOCKOUT_MS
+    await redis.set(key, data, { px: LOCKOUT_MS })
+    return { count: data.count, locked: true, lockedUntil: data.lockedUntil }
   }
   
-  loginAttempts.set(email.toLowerCase(), record)
-  return { count: record.count, locked: false, lockedUntil: null }
+  await redis.set(key, data, { ex: 60 * 60 }) // expire after 1 hour
+  return { count: data.count, locked: false, lockedUntil: null }
 }
 
-export function clearLoginAttempts(email: string): void {
-  loginAttempts.delete(email.toLowerCase())
-}
-
-// Clean up old entries every 5 minutes
-if (typeof setInterval !== 'undefined') {
-  setInterval(() => {
-    const now = Date.now()
-    for (const [key, value] of rateLimitMap.entries()) {
-      if (now > value.resetTime) rateLimitMap.delete(key)
-    }
-  }, 5 * 60 * 1000)
-
-  // Clean up expired lockouts every 30 minutes
-  setInterval(() => {
-    const now = Date.now()
-    for (const [key, value] of loginAttempts.entries()) {
-      if (value.lockedUntil && now >= value.lockedUntil) {
-        loginAttempts.delete(key)
-      }
-    }
-  }, 30 * 60 * 1000)
+export async function clearLoginAttempts(email: string): Promise<void> {
+  const key = `lockout:${email.toLowerCase()}`
+  await redis.del(key)
 }

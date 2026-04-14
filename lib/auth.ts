@@ -16,7 +16,7 @@ export const authOptions: NextAuthOptions = {
         if (!credentials?.email || !credentials?.password) return null;
 
         // Check lockout BEFORE password verification
-        const lockStatus = checkLoginAttempts(credentials.email)
+        const lockStatus = await checkLoginAttempts(credentials.email)
         if (!lockStatus.allowed) {
           const minutesLeft = Math.ceil((lockStatus.lockedUntil! - Date.now()) / 60000)
           throw new Error(`ACCOUNT_LOCKED:${minutesLeft}`)
@@ -26,7 +26,7 @@ export const authOptions: NextAuthOptions = {
         const user = await User.findOne({ email: credentials.email });
 
         if (!user) {
-          const result = recordFailedLogin(credentials.email)
+          const result = await recordFailedLogin(credentials.email)
           if (result.locked) {
             throw new Error(`ACCOUNT_LOCKED:15`)
           }
@@ -35,7 +35,7 @@ export const authOptions: NextAuthOptions = {
 
         const isValid = await user.comparePassword(credentials.password);
         if (!isValid) {
-          const result = recordFailedLogin(credentials.email)
+          const result = await recordFailedLogin(credentials.email)
           if (result.locked) {
             throw new Error(`ACCOUNT_LOCKED:15`)
           }
@@ -47,7 +47,7 @@ export const authOptions: NextAuthOptions = {
         }
 
         // After successful login - clear attempts:
-        clearLoginAttempts(credentials.email)
+        await clearLoginAttempts(credentials.email)
 
         return {
           id: user._id.toString(),

@@ -6,6 +6,10 @@ import Resource from "@/models/Resource";
 import User from "@/models/User";
 import ResourceRequest from "@/models/ResourceRequest";
 import Report from "@/models/Report";
+import redis from "@/lib/redis";
+
+const CACHE_KEY = "admin:dashboard:stats";
+const CACHE_TTL = 60; // 60 seconds
 
 function monthLabel(year: number, month: number) {
   return new Date(year, month - 1, 1).toLocaleString("en-US", { month: "short", year: "2-digit" });
@@ -26,6 +30,12 @@ export async function GET() {
     const session = await getServerSession(authOptions);
     if (!session || (session.user as { role?: string }).role !== "admin") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Try cache first
+    const cached = await redis.get(CACHE_KEY);
+    if (cached) {
+      return NextResponse.json(cached);
     }
 
     await dbConnect();
@@ -144,7 +154,7 @@ export async function GET() {
     const [totalResources, totalUsers, dlAgg, ratingAgg] = totalStats;
     const [pendingReqs, fulfilledReqs, rejectedReqs] = requestStats;
 
-    return NextResponse.json({
+    const result = {
       overview: {
         totalResources,
         totalUsers,
@@ -163,7 +173,12 @@ export async function GET() {
       topResources:         JSON.parse(JSON.stringify(topResourcesRaw)),
       usersByMonth:         mapMonthly(usersByMonthRaw),
       resourcesByMonth:     mapMonthly(resourcesByMonthRaw),
-    });
+    };
+
+    // Save to cache
+    await redis.set(CACHE_KEY, result, { ex: CACHE_TTL });
+
+    return NextResponse.json(result);
   } catch (error) {
     console.error('[API Error]:', error);
     return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 });

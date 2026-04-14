@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import dbConnect from "@/lib/mongodb";
 import Resource from "@/models/Resource";
 import Rating from "@/models/Rating";
+import redis from "@/lib/redis";
 
 export async function POST(req: NextRequest) {
   try {
@@ -20,6 +21,7 @@ export async function POST(req: NextRequest) {
 
     await dbConnect();
 
+    let result;
     if (action === 'delete') {
       // 1. Delete resources
       const deleteResult = await Resource.deleteMany({ _id: { $in: resourceIds } });
@@ -27,37 +29,41 @@ export async function POST(req: NextRequest) {
       // 2. Cleanup associated ratings
       await Rating.deleteMany({ resourceId: { $in: resourceIds } });
 
-      return NextResponse.json({ 
+      result = { 
         success: true, 
         deletedCount: deleteResult.deletedCount 
-      });
-    }
-
-    if (action === 'publish') {
+      };
+    } else if (action === 'publish') {
       const updateResult = await Resource.updateMany(
         { _id: { $in: resourceIds } },
         { $set: { isActive: true } }
       );
 
-      return NextResponse.json({ 
+      result = { 
         success: true, 
         updatedCount: updateResult.modifiedCount 
-      });
-    }
-
-    if (action === 'unpublish') {
+      };
+    } else if (action === 'unpublish') {
       const updateResult = await Resource.updateMany(
         { _id: { $in: resourceIds } },
         { $set: { isActive: false } }
       );
 
-      return NextResponse.json({ 
+      result = { 
         success: true, 
         updatedCount: updateResult.modifiedCount 
-      });
+      };
+    } else {
+      return NextResponse.json({ error: "Invalid action" }, { status: 400 });
     }
 
-    return NextResponse.json({ error: "Invalid action" }, { status: 400 });
+    // Invalidate cache
+    const keys = await redis.keys("resources:*");
+    if (keys.length > 0) {
+      await redis.del(...keys);
+    }
+
+    return NextResponse.json(result);
 
   } catch (error: unknown) {
     console.error('[API Error]:', error);

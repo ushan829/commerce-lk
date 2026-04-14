@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import User from "@/models/User";
 import { sendVerificationEmail } from "@/lib/email";
-import { rateLimit } from "@/lib/rateLimit";
+import { authRateLimit, checkRateLimit } from "@/lib/rateLimit";
 
 function generateOTP(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -10,8 +10,8 @@ function generateOTP(): string {
 
 export async function POST(req: NextRequest) {
   try {
-    const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
-    const { success } = rateLimit(`resend:${ip}`, 3, 60 * 1000);
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown';
+    const { success } = await checkRateLimit(authRateLimit, ip);
     if (!success) {
       return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 });
     }

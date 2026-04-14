@@ -3,13 +3,13 @@ import crypto from "crypto";
 import dbConnect from "@/lib/mongodb";
 import User from "@/models/User";
 import { sendPasswordResetEmail } from "@/lib/email";
-import { rateLimit } from "@/lib/rateLimit";
+import { forgotPasswordRateLimit, checkRateLimit } from "@/lib/rateLimit";
 import { validateInput, forgotPasswordSchema } from "@/lib/validations";
 
 export async function POST(req: NextRequest) {
   try {
-    const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
-    const { success } = rateLimit(`forgot-password:${ip}`, 3, 60 * 1000);
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown';
+    const { success } = await checkRateLimit(forgotPasswordRateLimit, ip);
     if (!success) {
       return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 });
     }
