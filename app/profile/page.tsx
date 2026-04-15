@@ -448,10 +448,10 @@ export default function ProfilePage() {
                   ) : (
                     <div className="space-y-4">
                       {Object.entries(subjectProgress)
-                        .sort(([,a], [,b]) => b - a)
+                        .sort(([,a], [,b]) => (b as number) - (a as number))
                         .map(([subject, count]) => {
-                          const maxCount = Math.max(...Object.values(subjectProgress));
-                          const percentage = Math.round((count / maxCount) * 100);
+                          const maxCount = Math.max(...Object.values(subjectProgress) as number[]);
+                          const percentage = Math.round(((count as number) / maxCount) * 100);
                           return (
                             <div key={subject}>
                               <div className="flex items-center justify-between mb-1.5">

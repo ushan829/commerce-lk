@@ -3,7 +3,13 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import { 
+  FileText, 
+  Download, 
+  Users, 
+  BookOpen, 
+  Search 
+} from "lucide-react";
 
 export interface HeroStats {
   resourceCount: number;
@@ -43,76 +49,64 @@ export default function HeroSection({ stats }: { stats: HeroStats }) {
 
   return (
     <section className="bg-white border-b border-gray-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          {/* Left side (60%) */}
-          <div className="lg:col-span-7">
-            <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-blue-50 text-blue-600 text-sm font-semibold mb-8">
-              🇱🇰 Sri Lanka · A/L Commerce Platform
-            </div>
-            
-            <h1 className="text-5xl lg:text-7xl font-bold text-gray-900 leading-[1.1] mb-6">
-              Free study materials<br />
-              for every student.
-            </h1>
-            
-            <p className="text-xl text-gray-500 max-w-lg mb-10 leading-relaxed">
-              Past papers, model papers, short notes and marking schemes for
-              A/L Commerce — in Sinhala, Tamil and English.
-            </p>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
+        <div className="flex flex-col items-center text-center">
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 text-sm font-medium px-4 py-1.5 rounded-full mb-6 border border-blue-100">
+            <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
+            Sri Lanka&apos;s #1 Free A/L Commerce Platform
+          </div>
+          
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-[1.1] mb-6 max-w-4xl">
+            Free study materials for every <span className="text-blue-600">student.</span>
+          </h1>
+          
+          <p className="text-lg text-gray-500 max-w-xl mb-10 leading-relaxed">
+            Past papers, model papers, short notes and marking schemes for
+            A/L Commerce — in Sinhala, Tamil and English.
+          </p>
 
-            {/* Search Bar */}
-            <form onSubmit={handleSearch} className="relative max-w-2xl mb-6">
+          {/* Search Bar */}
+          <form onSubmit={handleSearch} className="relative w-full max-w-2xl mb-8">
+            <div className="relative group">
               <input
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search for resources..."
-                className="w-full pl-6 pr-32 py-5 rounded-2xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-lg shadow-sm transition-all"
+                placeholder="Search for resources, subjects or papers..."
+                className="w-full pl-14 pr-32 py-4 sm:py-5 rounded-2xl border border-gray-200 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 text-base sm:text-lg shadow-lg transition-all"
               />
+              <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
               <button
                 type="submit"
-                className="absolute right-2 top-2 bottom-2 bg-blue-600 hover:bg-blue-700 text-white px-8 rounded-xl font-bold transition-colors flex items-center gap-2"
+                className="absolute right-2 top-2 bottom-2 bg-blue-600 hover:bg-blue-700 text-white px-6 sm:px-8 rounded-xl font-bold transition-all flex items-center gap-2 shadow-md hover:shadow-lg active:scale-95"
               >
-                <MagnifyingGlassIcon className="w-5 h-5" />
-                <span>Search</span>
+                <span className="hidden sm:inline">Search</span>
+                <Search className="w-5 h-5 sm:hidden" />
               </button>
-            </form>
-
-            <div className="text-gray-500 text-sm">
-              or <Link href="#subjects" className="text-blue-600 font-semibold hover:underline">browse by subject</Link> · <Link href="/register" className="text-gray-900 font-semibold hover:underline">register free</Link>
             </div>
+          </form>
+
+          <div className="text-gray-500 text-sm mb-12">
+            Popular: <Link href="/accounting" className="text-blue-600 font-medium hover:underline">Accounting</Link> · <Link href="/economics" className="text-blue-600 font-medium hover:underline">Economics</Link> · <Link href="/business-studies" className="text-blue-600 font-medium hover:underline">Business Studies</Link>
           </div>
 
-          {/* Right side (40%) */}
-          <div className="lg:col-span-5 relative">
-            <div className="absolute inset-0 bg-blue-50 rounded-full scale-90 -z-10 blur-3xl opacity-50" />
-            <div className="relative aspect-square max-w-md mx-auto">
-              <img
-                src="/Home Page.svg"
-                alt="Commerce.lk Illustration"
-                className="w-full h-full object-contain"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Stats Bar */}
-      <div className="border-t border-gray-100 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-gray-100">
+          {/* Stats Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 w-full max-w-5xl">
             {[
-              { label: "Resources", value: stats.resourceCount },
-              { label: "Downloads", value: stats.totalDownloads },
-              { label: "Students", value: stats.userCount },
-              { label: "Subjects", value: stats.subjectCount },
-            ].map((stat, idx) => (
-              <div key={stat.label} className="py-12 px-6 text-center md:text-left">
-                <div className="text-4xl font-bold text-gray-900 mb-1">
+              { value: stats.resourceCount, label: 'Resources', icon: <FileText className="w-5 h-5" />, color: 'text-blue-600', bg: 'bg-blue-50' },
+              { value: stats.totalDownloads, label: 'Downloads', icon: <Download className="w-5 h-5" />, color: 'text-green-600', bg: 'bg-green-50' },
+              { value: stats.userCount, label: 'Students', icon: <Users className="w-5 h-5" />, color: 'text-purple-600', bg: 'bg-purple-50' },
+              { value: stats.subjectCount, label: 'Subjects', icon: <BookOpen className="w-5 h-5" />, color: 'text-orange-600', bg: 'bg-orange-50' },
+            ].map((stat) => (
+              <div key={stat.label} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 text-center hover:border-blue-100 transition-colors">
+                <div className={`w-10 h-10 ${stat.bg} rounded-xl flex items-center justify-center mx-auto mb-3 ${stat.color}`}>
+                  {stat.icon}
+                </div>
+                <div className={`text-2xl font-bold ${stat.color}`}>
                   <CountUp end={stat.value} />
                 </div>
-                <div className="text-gray-500 font-medium">{stat.label}</div>
+                <div className="text-sm text-gray-500 mt-1 font-medium">{stat.label}</div>
               </div>
             ))}
           </div>

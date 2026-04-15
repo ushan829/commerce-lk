@@ -1,24 +1,24 @@
 import {
-  CalculatorIcon,
-  BriefcaseIcon,
-  ArrowTrendingUpIcon,
-  ChartBarIcon,
-  ComputerDesktopIcon,
-  LanguageIcon,
-  ClipboardDocumentListIcon,
-  CommandLineIcon,
-  AcademicCapIcon,
-} from "@heroicons/react/24/outline";
+  Calculator,
+  TrendingUp,
+  BarChart3,
+  PieChart,
+  Monitor,
+  Globe,
+  BookOpen,
+  Cpu,
+  GraduationCap,
+} from "lucide-react";
 
 const SUBJECT_ICONS: Record<string, React.ElementType> = {
-  accounting: CalculatorIcon,
-  "business-studies": BriefcaseIcon,
-  economics: ArrowTrendingUpIcon,
-  "business-statistics": ChartBarIcon,
-  ict: ComputerDesktopIcon,
-  "general-english": LanguageIcon,
-  "common-general-test": ClipboardDocumentListIcon,
-  git: CommandLineIcon,
+  accounting: Calculator,
+  "business-studies": TrendingUp,
+  economics: BarChart3,
+  "business-statistics": PieChart,
+  ict: Monitor,
+  "general-english": Globe,
+  "common-general-test": BookOpen,
+  git: Cpu,
 };
 
 interface SubjectIconProps {
@@ -27,6 +27,6 @@ interface SubjectIconProps {
 }
 
 export default function SubjectIcon({ slug, className = "w-6 h-6" }: SubjectIconProps) {
-  const Icon = SUBJECT_ICONS[slug] ?? AcademicCapIcon;
+  const Icon = SUBJECT_ICONS[slug] ?? GraduationCap;
   return <Icon className={className} />;
 }
