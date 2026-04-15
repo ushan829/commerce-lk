@@ -42,7 +42,7 @@ export async function GET() {
       }))
       .filter((h) => h.resource !== null);
 
-    return NextResponse.json({ downloads: JSON.parse(JSON.stringify(result)) });
+    return NextResponse.json({ downloads: result });
   } catch (error: unknown) {
     console.error('[API Error]:', error);
     return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 });
@@ -68,19 +68,28 @@ export async function POST(req: NextRequest) {
     }
 
     const resourceId = resource._id.toString();
+    const userId = (session.user as { id: string }).id;
 
-    // Add to history (keep last 200, avoid duplicates by pushing a fresh entry)
-    await User.findByIdAndUpdate(
-      (session.user as { id: string }).id,
-      {
-        $push: {
-          downloadHistory: {
-            $each: [{ resourceId, downloadedAt: new Date() }],
-            $slice: -200,
-          },
-        },
-      }
+    // Check if already in history to avoid immediate duplicates
+    const user = await User.findById(userId).select("downloadHistory");
+    const isAlreadyInHistory = user?.downloadHistory?.some(
+      (h: any) => h.resourceId === resourceId
     );
+
+    if (!isAlreadyInHistory) {
+      // Add to history (keep last 200)
+      await User.findByIdAndUpdate(
+        userId,
+        {
+          $push: {
+            downloadHistory: {
+              $each: [{ resourceId, downloadedAt: new Date() }],
+              $slice: -200,
+            },
+          },
+        }
+      );
+    }
 
     return NextResponse.json({ message: "Download recorded" });
   } catch (error: unknown) {

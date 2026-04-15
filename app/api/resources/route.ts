@@ -10,6 +10,7 @@ import { createSlug } from "@/lib/utils";
 import { sendNewResourceAlert } from "@/lib/email";
 import { getPublicFileUrl } from "@/lib/r2";
 import redis from "@/lib/redis";
+import { validateInput, resourceSchema } from "@/lib/validations";
 
 export async function GET(req: NextRequest) {
   try {
@@ -22,7 +23,10 @@ export async function GET(req: NextRequest) {
     const page = searchParams.get("page") || "1";
     const limit = searchParams.get("limit") || "20";
 
-    const cacheKey = `resources:${subjectSlug}:${medium}:${categorySlug}:${featured}:${page}:${limit}`;
+    // FIX 5: Use specific keys with versioning instead of redis.keys()
+    const version = (await redis.get("cache:resources:version")) || "1";
+    const cacheKey = `resources:${subjectSlug}:${medium}:${categorySlug}:${featured}:${page}:${limit}:v${version}`;
+    
     const cached = await redis.get(cacheKey);
     if (cached) return NextResponse.json(cached);
 
@@ -67,9 +71,10 @@ export async function GET(req: NextRequest) {
       },
     };
 
-    await redis.set(cacheKey, result, { ex: 300 }); // cache 5 minutes
+    await redis.set(cacheKey, result, { ex: 3600 }); // cache 1 hour with versioning
     return NextResponse.json(result);
-  } catch {
+  } catch (error) {
+    console.error('[API GET Error]:', error);
     return NextResponse.json({ error: "Failed to fetch resources" }, { status: 500 });
   }
 }
@@ -77,18 +82,23 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session || (session.user as { role?: string }).role !== "admin") {
+    if (!session || session.user.role !== "admin") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     await dbConnect();
     const body = await req.json();
 
-    // Whitelist allowed fields
+    // FIX 6: Add Zod Validation
+    const validation = validateInput(resourceSchema, body);
+    if (!validation.success) {
+      return NextResponse.json({ error: validation.error }, { status: 400 });
+    }
+
     const { 
       title, slug, description, subject, medium, category, 
       fileUrl, fileKey, fileSize, fileType, thumbnailUrl, thumbnailKey,
       tags, isActive, isFeatured, year, term, seoTitle, seoDescription 
-    } = body;
+    } = validation.data!;
 
     const finalSlug = slug || createSlug(title);
     
@@ -112,14 +122,11 @@ export async function POST(req: NextRequest) {
       term,
       seoTitle,
       seoDescription,
-      uploadedBy: (session.user as { id?: string }).id,
+      uploadedBy: session.user.id,
     });
 
-    // Invalidate cache
-    const keys = await redis.keys("resources:*");
-    if (keys.length > 0) {
-      await redis.del(...keys);
-    }
+    // FIX 5: Invalidate cache using versioning instead of scanning keys
+    await redis.incr("cache:resources:version");
 
     // Fire-and-forget: notify subscribed users
     if (resource.isActive) {
@@ -130,7 +137,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ resource }, { status: 201 });
   } catch (error: unknown) {
-    console.error('[API Error]:', error);
+    console.error('[API POST Error]:', error);
     return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 });
   }
 }

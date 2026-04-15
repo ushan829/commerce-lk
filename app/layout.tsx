@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import SessionProvider from "@/components/providers/SessionProvider";
 import { PWAProvider } from "@/components/providers/PWAProvider";
@@ -7,6 +8,12 @@ import GoogleAnalytics from '@/components/analytics/GoogleAnalytics';
 import PageViewTracker from '@/components/analytics/PageViewTracker';
 import AnnouncementBanner from '@/components/layout/AnnouncementBanner';
 import { Suspense } from 'react';
+
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-inter",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://commerce.lk'),
@@ -52,18 +59,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="scroll-smooth">
+    <html lang="en" className={`scroll-smooth ${inter.variable}`}>
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
-          rel="stylesheet"
-        />
         {/* PWA meta tags */}
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -71,7 +68,7 @@ export default function RootLayout({
         <meta name="theme-color" content="#2563EB" />
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
       </head>
-      <body suppressHydrationWarning className="bg-white antialiased">
+      <body className="bg-white antialiased font-sans">
         <SessionProvider>
           <AnnouncementBanner />
           {children}

@@ -1,52 +1,13 @@
 import Link from "next/link";
-import { 
-  ChevronRight,
-  Calculator,
-  TrendingUp,
-  BarChart3,
-  BookOpen,
-  Monitor,
-  Globe,
-  FileText,
-  Cpu,
-  BookMarked,
-  PieChart,
-  Landmark,
-  GraduationCap
-} from "lucide-react";
+import { ChevronRight } from "lucide-react";
+import { getSubjectConfig } from '@/lib/subjectConfig';
+import SubjectIcon from '@/components/ui/SubjectIcon';
 
 interface Subject {
   _id: string;
   name: string;
   slug: string;
   icon?: string;
-}
-
-const getSubjectIcon = (subjectName: string) => {
-  const name = subjectName?.toLowerCase() || ''
-  
-  if (name.includes('accounting')) return <Calculator className="w-6 h-6" />
-  if (name.includes('business studies') || name.includes('business s')) return <TrendingUp className="w-6 h-6" />
-  if (name.includes('economics')) return <BarChart3 className="w-6 h-6" />
-  if (name.includes('statistics') || name.includes('business stat')) return <PieChart className="w-6 h-6" />
-  if (name.includes('ict') || name.includes('information')) return <Monitor className="w-6 h-6" />
-  if (name.includes('english')) return <Globe className="w-6 h-6" />
-  if (name.includes('common general') || name.includes('general test')) return <BookOpen className="w-6 h-6" />
-  if (name.includes('git')) return <Cpu className="w-6 h-6" />
-  return <BookMarked className="w-6 h-6" />
-}
-
-const getSubjectColor = (subjectName: string) => {
-  const name = subjectName?.toLowerCase() || ''
-  if (name.includes('accounting')) return { bg: 'bg-blue-50 group-hover:bg-blue-100', icon: 'text-blue-600' }
-  if (name.includes('business studies')) return { bg: 'bg-green-50 group-hover:bg-green-100', icon: 'text-green-600' }
-  if (name.includes('economics')) return { bg: 'bg-purple-50 group-hover:bg-purple-100', icon: 'text-purple-600' }
-  if (name.includes('statistics')) return { bg: 'bg-orange-50 group-hover:bg-orange-100', icon: 'text-orange-600' }
-  if (name.includes('ict')) return { bg: 'bg-cyan-50 group-hover:bg-cyan-100', icon: 'text-cyan-600' }
-  if (name.includes('english')) return { bg: 'bg-pink-50 group-hover:bg-pink-100', icon: 'text-pink-600' }
-  if (name.includes('common general')) return { bg: 'bg-yellow-50 group-hover:bg-yellow-100', icon: 'text-yellow-600' }
-  if (name.includes('git')) return { bg: 'bg-indigo-50 group-hover:bg-indigo-100', icon: 'text-indigo-600' }
-  return { bg: 'bg-gray-50 group-hover:bg-gray-100', icon: 'text-gray-600' }
 }
 
 export default function SubjectsGrid({ subjects }: { subjects: Subject[] }) {
@@ -72,15 +33,15 @@ export default function SubjectsGrid({ subjects }: { subjects: Subject[] }) {
         {/* Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {subjects.map((subject) => {
-            const colors = getSubjectColor(subject.name)
+            const config = getSubjectConfig(subject.slug)
             return (
               <Link
                 key={subject._id}
                 href={`/${subject.slug}`}
-                className="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-blue-200 p-5 transition-all duration-200 flex flex-col items-center text-center"
+                className={`group bg-white rounded-2xl border ${config.borderColor} shadow-sm hover:shadow-md hover:border-blue-200 p-5 transition-all duration-200 flex flex-col items-center text-center`}
               >
-                <div className={`w-12 h-12 ${colors.bg} rounded-2xl flex items-center justify-center mb-3 transition-colors ${colors.icon}`}>
-                  {getSubjectIcon(subject.name)}
+                <div className={`w-12 h-12 ${config.bg} rounded-2xl flex items-center justify-center mb-3 transition-colors ${config.iconColor}`}>
+                  <SubjectIcon iconName={config.icon} className="w-6 h-6" />
                 </div>
                 <h3 className="text-sm font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
                   {subject.name}

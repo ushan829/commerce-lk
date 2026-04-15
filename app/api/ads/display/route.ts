@@ -12,15 +12,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ ad: null })
     }
 
-    // Log all ads to see what positions exist
-    const allAds = await Ad.find({})
-    console.log("All ads in DB:", JSON.stringify(allAds.map(a => ({
-      title: a.title,
-      position: a.position,
-      isActive: a.isActive,
-      active: (a as any).active
-    }))))
-
     const now = new Date()
     const ad = await Ad.findOne({
       position: position,
@@ -48,7 +39,6 @@ export async function GET(request: NextRequest) {
       ]
     }).sort({ order: 1 })
 
-    console.log(`Found ad for ${position}:`, ad ? ad.title : "null")
     return NextResponse.json({ ad })
   } catch (error) {
     console.error("Ad display API error:", error)

@@ -34,6 +34,18 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
+        hostname: "files.commerce.lk",
+      },
+      {
+        protocol: "https",
+        hostname: "*.r2.dev",
+      },
+      {
+        protocol: "https",
+        hostname: "*.cloudflarestorage.com",
+      },
+      {
+        protocol: "https",
         hostname: "**.r2.cloudflarestorage.com",
       },
       {

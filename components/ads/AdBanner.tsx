@@ -6,11 +6,9 @@ export default function AdBanner({ position }: { position: string }) {
   const [ad, setAd] = useState<any>(null)
 
   useEffect(() => {
-    console.log("Fetching ad for position:", position)
     fetch(`/api/ads/display?position=${encodeURIComponent(position)}`)
       .then(r => r.json())
       .then(data => { 
-        console.log("Ad received:", data)
         setAd(data.ad) 
       })
       .catch((err) => {

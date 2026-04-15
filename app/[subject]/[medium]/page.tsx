@@ -35,21 +35,39 @@ async function getData(subjectSlug: string, medium: string) {
 
   if (!subject) return null;
 
-  const categoriesWithCounts = await Promise.all(
-    categories.map(async (cat) => {
-      const count = await Resource.countDocuments({
+  // Single aggregation query instead of N+1 countDocuments
+  const categoryCounts = await Resource.aggregate([
+    {
+      $match: {
         subject: (subject as any)._id,
         medium,
-        category: (cat as any)._id,
         isActive: true,
-      });
-      return { ...cat, count };
-    })
+      },
+    },
+    {
+      $group: {
+        _id: "$category",
+        count: { $sum: 1 },
+      },
+    },
+  ]);
+
+  const countMap = new Map(
+    categoryCounts.map((c: any) => [c._id.toString(), c.count])
   );
 
+  const categoriesWithCounts = (categories as any[]).map((cat) => ({
+    ...cat,
+    _id: cat._id.toString(),
+    count: countMap.get(cat._id.toString()) || 0,
+  }));
+
   return {
-    subject: JSON.parse(JSON.stringify(subject)),
-    categories: JSON.parse(JSON.stringify(categoriesWithCounts)),
+    subject: {
+      ...subject,
+      _id: (subject as any)._id.toString(),
+    },
+    categories: categoriesWithCounts,
   };
 }
 
@@ -58,7 +76,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const data = await getData(subjectSlug, medium);
   if (!data) return { title: "Not Found" };
   const mediumLabel = MEDIUM_LABELS[medium] || medium;
-  const subjectName = data.subject.name;
+  const subjectName = (data.subject as any).name;
   return {
     title: `${subjectName} ${mediumLabel} Medium - Study Materials`,
     description: `Free ${subjectName} study materials in ${mediumLabel} medium for Sri Lanka A/L students.`,
@@ -83,12 +101,12 @@ export default async function MediumPage({ params }: Props) {
             <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6">
               <Link href="/" className="hover:text-blue-600 transition-colors">Home</Link>
               <ChevronRightIcon className="w-4 h-4" />
-              <Link href={`/${subjectSlug}`} className="hover:text-blue-600 transition-colors">{subject.name}</Link>
+              <Link href={`/${subjectSlug}`} className="hover:text-blue-600 transition-colors">{(subject as any).name}</Link>
               <ChevronRightIcon className="w-4 h-4" />
               <span className="text-gray-900 font-medium">{mediumLabel} Medium</span>
             </nav>
             <h1 className="text-4xl font-bold text-gray-900">
-              {subject.name} <span className="text-blue-600">Resources</span>
+              {(subject as any).name} <span className="text-blue-600">Resources</span>
             </h1>
             <p className="text-gray-500 mt-2 text-lg">Browse materials by category in {mediumLabel} medium.</p>
           </div>

@@ -66,6 +66,28 @@ export const broadcastSchema = z.object({
   recipientType: z.enum(['all', 'verified', 'unverified']),
 })
 
+export const resourceSchema = z.object({
+  title: z.string().min(2, 'Title must be at least 2 characters').max(200),
+  slug: z.string().min(2).max(200).regex(/^[a-z0-9-]+$/, 'Slug must be lowercase with hyphens only').optional().or(z.literal('')),
+  description: z.string().max(2000).optional().or(z.literal('')),
+  subject: z.string().min(1, 'Subject is required'),
+  medium: z.enum(['sinhala', 'tamil', 'english']),
+  category: z.string().min(1, 'Category is required'),
+  fileUrl: z.string().url('Invalid file URL'),
+  fileKey: z.string().min(1, 'File key is required'),
+  fileSize: z.number().optional(),
+  fileType: z.string().optional(),
+  thumbnailUrl: z.string().url().optional().or(z.literal('')),
+  thumbnailKey: z.string().optional().or(z.literal('')),
+  tags: z.array(z.string()).optional(),
+  isActive: z.boolean().optional(),
+  isFeatured: z.boolean().optional(),
+  year: z.number().int().min(1990).max(2030).optional().nullable(),
+  term: z.enum(['1st', '2nd', '3rd']).optional().nullable(),
+  seoTitle: z.string().max(200).optional().or(z.literal('')),
+  seoDescription: z.string().max(500).optional().or(z.literal('')),
+})
+
 // Helper function to validate and return errors
 export function validateInput<T>(schema: z.ZodSchema<T>, data: unknown): {
   success: boolean

@@ -4,6 +4,10 @@ import Resource from "@/models/Resource";
 import Subject from "@/models/Subject";
 import Category from "@/models/Category";
 
+function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 export async function GET(req: NextRequest) {
   try {
     await dbConnect();
@@ -28,7 +32,7 @@ export async function GET(req: NextRequest) {
       if (q.length >= 3) {
         query.$text = { $search: q };
       } else {
-        query.title = { $regex: q, $options: "i" };
+        query.title = { $regex: escapeRegex(q), $options: "i" };
       }
     }
 
@@ -74,7 +78,7 @@ export async function GET(req: NextRequest) {
       .lean();
 
     return NextResponse.json({
-      results: JSON.parse(JSON.stringify(results)),
+      results,
       total,
       page,
       pages,

@@ -101,7 +101,6 @@ export default function ResourceListClient({ resources, subjectName, categoryNam
                   alt={resource.title}
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-500"
-                  unoptimized
                 />
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100">
