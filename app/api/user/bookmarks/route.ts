@@ -4,6 +4,8 @@ import { authOptions } from "@/lib/auth";
 import dbConnect from "@/lib/mongodb";
 import User from "@/models/User";
 import Resource from "@/models/Resource";
+import Subject from "@/models/Subject";
+import Category from "@/models/Category";
 
 export async function GET() {
   try {

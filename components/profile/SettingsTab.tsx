@@ -13,9 +13,19 @@ import {
 
 interface Props {
   profile: { email: string; isVerified: boolean };
+  emailNotifications: boolean;
+  publicProfile: boolean;
+  savingPrefs: boolean;
+  onPreferenceChange: (key: 'emailNotifications' | 'publicProfile', value: boolean) => void;
 }
 
-export default function SettingsTab({ profile }: Props) {
+export default function SettingsTab({ 
+  profile, 
+  emailNotifications, 
+  publicProfile, 
+  savingPrefs, 
+  onPreferenceChange 
+}: Props) {
   const [pw, setPw] = useState({ current: "", next: "", confirm: "" });
   const [loading, setLoading] = useState(false);
 
@@ -110,23 +120,41 @@ export default function SettingsTab({ profile }: Props) {
         </div>
         
         <div className="space-y-6">
-          <div className="flex items-center justify-between py-4 border-b border-gray-50">
+          <div className="flex items-center justify-between py-4 border-b border-gray-100">
             <div>
-              <h4 className="font-bold text-gray-900">Email Notifications</h4>
-              <p className="text-sm text-gray-500">Receive updates about new resources and site news.</p>
+              <p className="text-sm font-medium text-gray-900">Email Notifications</p>
+              <p className="text-xs text-gray-500 mt-0.5">Receive updates about new resources and site news.</p>
             </div>
-            <div className="w-12 h-6 bg-blue-600 rounded-full relative">
-              <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full"></div>
-            </div>
+            <button
+              onClick={() => onPreferenceChange('emailNotifications', !emailNotifications)}
+              disabled={savingPrefs}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50 ${
+                emailNotifications ? 'bg-blue-600' : 'bg-gray-200'
+              }`}
+              aria-label="Toggle email notifications"
+            >
+              <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-sm ${
+                emailNotifications ? 'translate-x-6' : 'translate-x-1'
+              }`} />
+            </button>
           </div>
           <div className="flex items-center justify-between py-4">
             <div>
-              <h4 className="font-bold text-gray-900">Public Profile</h4>
-              <p className="text-sm text-gray-500">Allow others to see your achievements and downloads.</p>
+              <p className="text-sm font-medium text-gray-900">Public Profile</p>
+              <p className="text-xs text-gray-500 mt-0.5">Allow others to see your achievements and downloads.</p>
             </div>
-            <div className="w-12 h-6 bg-gray-200 rounded-full relative">
-              <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full"></div>
-            </div>
+            <button
+              onClick={() => onPreferenceChange('publicProfile', !publicProfile)}
+              disabled={savingPrefs}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50 ${
+                publicProfile ? 'bg-blue-600' : 'bg-gray-200'
+              }`}
+              aria-label="Toggle public profile"
+            >
+              <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-sm ${
+                publicProfile ? 'translate-x-6' : 'translate-x-1'
+              }`} />
+            </button>
           </div>
         </div>
       </div>

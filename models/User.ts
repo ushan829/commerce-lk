@@ -30,6 +30,8 @@ export interface IUser extends Document {
   lastActive?: Date;
   isActive: boolean;
   // Preferences
+  emailNotifications: boolean;
+  publicProfile: boolean;
   notifications?: {
     newResources: boolean;
     weeklyTips: boolean;
@@ -82,6 +84,8 @@ const UserSchema = new Schema<IUser>(
     ],
     lastActive: { type: Date },
     isActive: { type: Boolean, default: true },
+    emailNotifications: { type: Boolean, default: true },
+    publicProfile: { type: Boolean, default: false },
     notifications: {
       newResources: { type: Boolean, default: true },
       weeklyTips: { type: Boolean, default: true },
