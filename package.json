@@ -20,6 +20,7 @@
     "bcryptjs": "^2.4.3",
     "isomorphic-dompurify": "^3.8.0",
     "jsonwebtoken": "^9.0.2",
+    "lucide-react": "^1.8.0",
     "mongoose": "^8.3.4",
     "next": "^15.3.0",
     "next-auth": "^4.24.7",
