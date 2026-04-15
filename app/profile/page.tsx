@@ -450,13 +450,14 @@ export default function ProfilePage() {
                       {Object.entries(subjectProgress)
                         .sort(([,a], [,b]) => (b as number) - (a as number))
                         .map(([subject, count]) => {
+                          const countNum = count as number;
                           const maxCount = Math.max(...Object.values(subjectProgress) as number[]);
-                          const percentage = Math.round(((count as number) / maxCount) * 100);
+                          const percentage = Math.round((countNum / maxCount) * 100);
                           return (
                             <div key={subject}>
                               <div className="flex items-center justify-between mb-1.5">
                                 <span className="text-sm font-medium text-gray-700">{subject}</span>
-                                <span className="text-sm text-gray-500">{count} resource{count > 1 ? 's' : ''}</span>
+                                <span className="text-sm text-gray-500">{countNum} resource{countNum > 1 ? 's' : ''}</span>
                               </div>
                               <div className="w-full bg-gray-100 rounded-full h-2.5">
                                 <div
